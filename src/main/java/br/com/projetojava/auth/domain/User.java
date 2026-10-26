@@ -1,6 +1,5 @@
 package br.com.projetojava.auth.domain;
 
-import br.com.projetojava.upload.domain.FileUpload;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -11,8 +10,6 @@ import lombok.NoArgsConstructor;
  * JPA entity representing an application user.
  *
  * <p>Stores authentication credentials and role information. Passwords are stored as BCrypt hashes.
- * A user may have one active profile photo ({@link #avatar}), stored as a reference to a
- * {@link FileUpload} record.
  */
 @Entity
 @Table(name = "users")
@@ -35,14 +32,6 @@ public class User {
 
   @Column(name = "active", nullable = false)
   private boolean active = true;
-
-  /**
-   * Active profile photo for this user. Nullable — a user may have no avatar. Changing the avatar
-   * simply updates this reference; previous uploads remain in {@code file_uploads} as history.
-   */
-  @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "avatar_id")
-  private FileUpload avatar;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
@@ -67,19 +56,6 @@ public class User {
     user.createdAt = LocalDateTime.now();
     user.updatedAt = LocalDateTime.now();
     return user;
-  }
-
-  /**
-   * Sets or replaces the user's active profile photo.
-   *
-   * <p>The previous avatar record is not deleted — it remains in {@code file_uploads} as history.
-   * Pass {@code null} to remove the avatar.
-   *
-   * @param avatar new profile photo, or {@code null} to clear it
-   */
-  public void updateAvatar(FileUpload avatar) {
-    this.avatar = avatar;
-    this.updatedAt = LocalDateTime.now();
   }
 
   /**

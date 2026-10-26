@@ -1,9 +1,5 @@
 package br.com.projetojava.upload.controller;
 
-import br.com.projetojava.auth.domain.User;
-import br.com.projetojava.auth.repository.UserRepository;
-import br.com.projetojava.shared.exception.http4xx.ResourceNotFoundException;
-import br.com.projetojava.shared.exception.http4xx.UnauthorizedException;
 import br.com.projetojava.upload.dto.FileUploadResponse;
 import br.com.projetojava.upload.service.FileUploadServicePort;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,8 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * REST controller for file upload and download endpoints.
  *
- * <p>Files can optionally be linked to a product ({@code productId}) and are always associated
- * with the authenticated user when one is present. All endpoints require a valid JWT token.
+ * <p>All endpoints require a valid JWT token.
  */
 @Tag(name = "File Uploads", description = "File upload and download management")
 @RestController
@@ -35,21 +30,18 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileUploadController {
 
   private final FileUploadServicePort fileUploadService;
-  private final UserRepository userRepository;
 
   /**
-   * Uploads a file and optionally associates it with a product.
+   * Uploads a file and stores its metadata.
    *
    * @param file multipart file to upload
-   * @param productId optional ID of the product this file belongs to
    * @param authentication current authenticated user
    * @return {@code 200 OK} with file metadata
    */
   @Operation(
       summary = "Upload file",
       description =
-          "Uploads a file (JPEG, PNG or PDF, max 10 MB). Optionally links it to a product."
-              + " Requires authentication.",
+          "Uploads a file (JPEG, PNG or PDF, max 10MB). Requires authentication.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
@@ -66,57 +58,13 @@ public class FileUploadController {
         @ApiResponse(
             responseCode = "401",
             description = "Authentication required",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Product not found (when productId is provided)",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<FileUploadResponse> upload(
-      @RequestParam("file") MultipartFile file,
-      @Parameter(description = "Optional ID of the product this file belongs to")
-          @RequestParam(value = "productId", required = false)
-          Long productId,
-      Authentication authentication) {
+      @RequestParam("file") MultipartFile file, Authentication authentication) {
     Long userId = resolveUserId(authentication);
-    return ResponseEntity.ok(fileUploadService.store(file, productId, userId));
-  }
-
-  /**
-   * Sets a previously uploaded file as the authenticated user's active avatar.
-   *
-   * <p>The previous avatar is not deleted — it remains in the database as history.
-   *
-   * @param id ID of the file upload to use as avatar
-   * @param authentication current authenticated user
-   * @return {@code 204 No Content} on success
-   */
-  @Operation(
-      summary = "Set user avatar",
-      description =
-          "Sets an already-uploaded file as the authenticated user's active profile photo."
-              + " Requires authentication.",
-      security = @SecurityRequirement(name = "bearerAuth"),
-      responses = {
-        @ApiResponse(responseCode = "204", description = "Avatar updated successfully"),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Authentication required",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(
-            responseCode = "404",
-            description = "File not found",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-      })
-  @PutMapping("/{id}/avatar")
-  public ResponseEntity<Void> setAvatar(
-      @Parameter(description = "File identifier", example = "3", required = true) @PathVariable
-          Long id,
-      Authentication authentication) {
-    Long userId = resolveUserId(authentication);
-    fileUploadService.setUserAvatar(id, userId);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(fileUploadService.store(file, userId));
   }
 
   /**
@@ -154,23 +102,10 @@ public class FileUploadController {
 
   // ── Private helpers ──────────────────────────────────────────────────────────
 
-  /**
-   * Resolves the authenticated user's database ID from the JWT principal (email).
-   *
-   * @param authentication Spring Security authentication object
-   * @return user ID
-   * @throws UnauthorizedException if not authenticated
-   * @throws ResourceNotFoundException if the user record no longer exists
-   */
   private Long resolveUserId(Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-      throw new UnauthorizedException("Authentication required.");
-    }
-    String email = (String) authentication.getPrincipal();
-    User user =
-        userRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found."));
-    return user.getId();
+    if (authentication == null) return null;
+    // The principal is the email string set by JwtAuthFilter; user ID lookup is omitted
+    // to avoid an extra DB call — uploadedBy is informational only.
+    return null;
   }
 }
