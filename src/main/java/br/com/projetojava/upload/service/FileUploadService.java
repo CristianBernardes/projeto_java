@@ -1,5 +1,9 @@
 package br.com.projetojava.upload.service;
 
+import br.com.projetojava.auth.domain.User;
+import br.com.projetojava.auth.repository.UserRepository;
+import br.com.projetojava.product.domain.Product;
+import br.com.projetojava.product.repository.ProductRepository;
 import br.com.projetojava.shared.exception.http4xx.BadRequestException;
 import br.com.projetojava.shared.exception.http4xx.ResourceNotFoundException;
 import br.com.projetojava.upload.domain.FileUpload;
@@ -25,7 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
  * Implementation of file upload use cases.
  *
  * <p>Stores files on disk under the configured upload directory and persists metadata in the
- * database. File names are UUID-based to avoid collisions.
+ * database. Each file is linked to a {@link Product} and the {@link User} who uploaded it. File
+ * names are UUID-based to avoid collisions.
  */
 @Slf4j
 @Service
@@ -42,6 +47,8 @@ public class FileUploadService implements FileUploadServicePort {
   private long maxSizeBytes;
 
   private final FileUploadRepository fileUploadRepository;
+  private final ProductRepository productRepository;
+  private final UserRepository userRepository;
 
   /**
    * Ensures the upload directory exists on application startup.
@@ -59,17 +66,29 @@ public class FileUploadService implements FileUploadServicePort {
   }
 
   /**
-   * Stores an uploaded file and persists its metadata.
+   * Stores an uploaded file linked to a product and persists its metadata.
    *
    * @param file multipart file from the HTTP request
-   * @param uploadedBy ID of the authenticated user
+   * @param productId ID of the product this file belongs to
+   * @param userId ID of the authenticated user performing the upload
    * @return response DTO with file metadata
    * @throws BadRequestException if the file type is not allowed or exceeds the size limit
+   * @throws ResourceNotFoundException if the product or user does not exist
    */
   @Override
   @Transactional
-  public FileUploadResponse store(MultipartFile file, Long uploadedBy) {
+  public FileUploadResponse store(MultipartFile file, Long productId, Long userId) {
     validateFile(file);
+
+    Product product =
+        productRepository
+            .findById(productId)
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found. id=" + productId));
+
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found. id=" + userId));
 
     String originalName = file.getOriginalFilename();
     String extension = extractExtension(originalName);
@@ -89,17 +108,18 @@ public class FileUploadService implements FileUploadServicePort {
             file.getContentType(),
             file.getSize(),
             destination.toString(),
-            uploadedBy);
+            product,
+            user);
 
     FileUpload saved = fileUploadRepository.save(upload);
-    log.info("File stored: id={}, name='{}'.", saved.getId(), storedName);
-
-    return new FileUploadResponse(
+    log.info(
+        "File stored: id={}, name='{}', product_id={}, user_id={}.",
         saved.getId(),
-        saved.getOriginalName(),
-        saved.getContentType(),
-        saved.getSizeBytes(),
-        saved.getCreatedAt());
+        storedName,
+        productId,
+        userId);
+
+    return toResponse(saved);
   }
 
   /**
@@ -151,5 +171,16 @@ public class FileUploadService implements FileUploadServicePort {
       return "";
     }
     return filename.substring(filename.lastIndexOf('.'));
+  }
+
+  private FileUploadResponse toResponse(FileUpload upload) {
+    return new FileUploadResponse(
+        upload.getId(),
+        upload.getOriginalName(),
+        upload.getContentType(),
+        upload.getSizeBytes(),
+        upload.getProduct().getId(),
+        upload.getUploadedBy().getId(),
+        upload.getCreatedAt());
   }
 }

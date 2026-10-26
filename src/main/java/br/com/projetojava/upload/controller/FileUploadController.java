@@ -1,5 +1,9 @@
 package br.com.projetojava.upload.controller;
 
+import br.com.projetojava.auth.domain.User;
+import br.com.projetojava.auth.repository.UserRepository;
+import br.com.projetojava.shared.exception.http4xx.ResourceNotFoundException;
+import br.com.projetojava.shared.exception.http4xx.UnauthorizedException;
 import br.com.projetojava.upload.dto.FileUploadResponse;
 import br.com.projetojava.upload.service.FileUploadServicePort;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,7 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * REST controller for file upload and download endpoints.
  *
- * <p>All endpoints require a valid JWT token.
+ * <p>Files are always linked to a product ({@code productId}) and the authenticated user. All
+ * endpoints require a valid JWT token.
  */
 @Tag(name = "File Uploads", description = "File upload and download management")
 @RestController
@@ -30,18 +35,21 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileUploadController {
 
   private final FileUploadServicePort fileUploadService;
+  private final UserRepository userRepository;
 
   /**
-   * Uploads a file and stores its metadata.
+   * Uploads a file and associates it with a product.
    *
    * @param file multipart file to upload
+   * @param productId ID of the product this file belongs to
    * @param authentication current authenticated user
    * @return {@code 200 OK} with file metadata
    */
   @Operation(
       summary = "Upload file",
       description =
-          "Uploads a file (JPEG, PNG or PDF, max 10MB). Requires authentication.",
+          "Uploads a file (JPEG, PNG or PDF, max 10 MB) and links it to a product."
+              + " Requires authentication.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
@@ -58,13 +66,21 @@ public class FileUploadController {
         @ApiResponse(
             responseCode = "401",
             description = "Authentication required",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Product or user not found",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<FileUploadResponse> upload(
-      @RequestParam("file") MultipartFile file, Authentication authentication) {
+      @RequestParam("file") MultipartFile file,
+      @Parameter(description = "ID of the product this file belongs to", required = true)
+          @RequestParam("productId")
+          Long productId,
+      Authentication authentication) {
     Long userId = resolveUserId(authentication);
-    return ResponseEntity.ok(fileUploadService.store(file, userId));
+    return ResponseEntity.ok(fileUploadService.store(file, productId, userId));
   }
 
   /**
@@ -102,10 +118,23 @@ public class FileUploadController {
 
   // ── Private helpers ──────────────────────────────────────────────────────────
 
+  /**
+   * Resolves the authenticated user's database ID from the JWT principal (email).
+   *
+   * @param authentication Spring Security authentication object
+   * @return user ID
+   * @throws UnauthorizedException if not authenticated
+   * @throws ResourceNotFoundException if the user record no longer exists
+   */
   private Long resolveUserId(Authentication authentication) {
-    if (authentication == null) return null;
-    // The principal is the email string set by JwtAuthFilter; user ID lookup is omitted
-    // to avoid an extra DB call — uploadedBy is informational only.
-    return null;
+    if (authentication == null || !authentication.isAuthenticated()) {
+      throw new UnauthorizedException("Authentication required.");
+    }
+    String email = (String) authentication.getPrincipal();
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found."));
+    return user.getId();
   }
 }

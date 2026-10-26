@@ -1,5 +1,7 @@
 package br.com.projetojava.upload.domain;
 
+import br.com.projetojava.auth.domain.User;
+import br.com.projetojava.product.domain.Product;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -9,8 +11,9 @@ import lombok.NoArgsConstructor;
 /**
  * JPA entity representing an uploaded file record.
  *
- * <p>Stores metadata about files uploaded to the server. The actual file content is stored on disk;
- * this entity tracks the path and associated metadata.
+ * <p>Morphological table: each row belongs to one {@link Product} (many images per product) and
+ * was uploaded by one {@link User}. The actual file content is stored on disk; this entity tracks
+ * the path and associated metadata.
  */
 @Entity
 @Table(name = "file_uploads")
@@ -37,21 +40,29 @@ public class FileUpload {
   @Column(name = "path", nullable = false)
   private String path;
 
-  @Column(name = "uploaded_by")
-  private Long uploadedBy;
+  /** Product this file belongs to. A product can have many files/images. */
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "product_id", nullable = false)
+  private Product product;
+
+  /** User who uploaded this file. */
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User uploadedBy;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
   /**
-   * Creates a new file upload record.
+   * Creates a new file upload record linked to a product and a user.
    *
    * @param originalName original file name as provided by the client
    * @param storedName UUID-based name used for storage (collision-safe)
    * @param contentType MIME type of the file
    * @param sizeBytes file size in bytes
    * @param path absolute path where the file is stored on disk
-   * @param uploadedBy ID of the user who uploaded the file (nullable)
+   * @param product product this file belongs to
+   * @param uploadedBy user who performed the upload
    * @return new {@link FileUpload} instance
    */
   public static FileUpload create(
@@ -60,13 +71,15 @@ public class FileUpload {
       String contentType,
       long sizeBytes,
       String path,
-      Long uploadedBy) {
+      Product product,
+      User uploadedBy) {
     FileUpload upload = new FileUpload();
     upload.originalName = originalName;
     upload.storedName = storedName;
     upload.contentType = contentType;
     upload.sizeBytes = sizeBytes;
     upload.path = path;
+    upload.product = product;
     upload.uploadedBy = uploadedBy;
     upload.createdAt = LocalDateTime.now();
     return upload;
