@@ -1,0 +1,59 @@
+services:
+  postgres:
+    container_name: projeto-java-postgres
+    image: postgres:14.24-alpine3.23
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: java
+      POSTGRES_PASSWORD: java
+      POSTGRES_DB: java
+    volumes:
+      - ./.docker/postgres/dbdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - projeto-java
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U java -d java"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    container_name: projeto-java-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/java
+      SPRING_DATASOURCE_USERNAME: java
+      SPRING_DATASOURCE_PASSWORD: java
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8088:8080"
+    networks:
+      - projeto-java
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  maven:
+    container_name: projeto-java-maven
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src:/app/src
+      - maven-cache:/root/.m2
+    networks:
+      - projeto-java
+    profiles:
+      - dev
+
+networks:
+  projeto-java:
+    driver: bridge
+
+volumes:
+  maven-cache:

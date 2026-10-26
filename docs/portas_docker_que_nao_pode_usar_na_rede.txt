@@ -1,0 +1,30 @@
+NAMES                           STATUS                 PORTS
+sorte-maker-cron                Up 4 hours             9000/tcp
+sorte-maker                     Up 4 hours             0.0.0.0:8021->8021/tcp, [::]:8021->8021/tcp, 9000/tcp
+sorte-maker-fechamento-worker   Up 4 hours             
+sorte-maker-redis               Up 4 hours (healthy)   0.0.0.0:8079->6379/tcp, [::]:8079->6379/tcp
+sorte-maker-mosquitto           Up 4 hours             0.0.0.0:8083->1883/tcp, [::]:8083->1883/tcp, 0.0.0.0:8082->3000/tcp, [::]:8082->3000/tcp
+sorte-maker-mariadb             Up 4 hours             0.0.0.0:3368->3306/tcp, [::]:3368->3306/tcp
+sorte-maker-analysis            Up 4 hours             8022/tcp
+mosquitto                       Up 4 hours             0.0.0.0:1883->1883/tcp, [::]:1883->1883/tcp, 0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
+nomad_meshtastic_web            Up 4 hours             80/tcp, 0.0.0.0:8450->8080/tcp, [::]:8450->8080/tcp
+portainer                       Up 4 hours             8000/tcp, 9443/tcp, 0.0.0.0:9447->9000/tcp, [::]:9447->9000/tcp
+nomad_jellyfin                  Up 4 hours (healthy)   0.0.0.0:8490->8096/tcp, [::]:8490->8096/tcp
+nomad_vaultwarden               Up 4 hours (healthy)   0.0.0.0:8480->80/tcp, [::]:8480->80/tcp
+nomad_homebox                   Up 4 hours (healthy)   0.0.0.0:8470->7745/tcp, [::]:8470->7745/tcp
+nomad_excalidraw                Up 4 hours (healthy)   0.0.0.0:8440->80/tcp, [::]:8440->80/tcp
+nomad_calibreweb                Up 4 hours             0.0.0.0:8420->8083/tcp, [::]:8420->8083/tcp
+nomad_stirling_pdf              Up 4 hours (healthy)   0.0.0.0:8400->8080/tcp, [::]:8400->8080/tcp
+nomad_filebrowser               Up 4 hours (healthy)   0.0.0.0:8410->80/tcp, [::]:8410->80/tcp
+nomad_cyberchef                 Up 4 hours             0.0.0.0:8100->80/tcp, [::]:8100->80/tcp
+nomad_kolibri_2                 Up 4 hours             8081/tcp, 0.0.0.0:8311->8311/tcp, [::]:8311->8311/tcp, 0.0.0.0:8310->8080/tcp, [::]:8310->8080/tcp
+nomad_kiwix_server              Up 4 hours             80/tcp, 0.0.0.0:8090->8080/tcp, [::]:8090->8080/tcp
+nomad_flatnotes                 Up 4 hours (healthy)   0.0.0.0:8200->8080/tcp, [::]:8200->8080/tcp
+nomad_it_tools                  Up 4 hours             0.0.0.0:8430->80/tcp, [::]:8430->80/tcp
+nomad_qdrant                    Up 4 hours             0.0.0.0:6333-6334->6333-6334/tcp, [::]:6333-6334->6333-6334/tcp
+nomad_admin                     Up 4 hours (healthy)   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+nomad_redis                     Up 4 hours (healthy)   6379/tcp
+nomad_mysql                     Up 4 hours (healthy)   3306/tcp, 33060/tcp
+nomad_dozzle                    Up 4 hours             0.0.0.0:9999->8080/tcp, [::]:9999->8080/tcp
+nomad_disk_collector            Up 4 hours             
+nomad_updater                   Up 4 hours             
