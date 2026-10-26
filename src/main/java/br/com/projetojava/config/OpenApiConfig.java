@@ -44,8 +44,6 @@ public class OpenApiConfig {
                 .version("v1.0.0")
                 .contact(new Contact().name("Cristian Bernarde"))
                 .license(new License().name("MIT")))
-        .servers(
-            List.of(
-                new Server().url("http://localhost:8088").description("Local (Docker)")));
+        .servers(List.of(new Server().url("http://localhost:8088").description("Local (Docker)")));
   }
 }

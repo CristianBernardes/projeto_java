@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * Repositório JPA para a entidade {@link Produto}.
  *
- * <p>Estende {@link JpaRepository} para herdar as operações CRUD padrão. Consultas customizadas
- * são declaradas aqui como métodos derivados ou {@code @Query}.
+ * <p>Estende {@link JpaRepository} para herdar as operações CRUD padrão. Consultas customizadas são
+ * declaradas aqui como métodos derivados ou {@code @Query}.
  */
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 

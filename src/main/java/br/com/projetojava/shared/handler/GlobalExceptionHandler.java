@@ -27,8 +27,7 @@ public class GlobalExceptionHandler {
    * @return corpo de erro padronizado
    */
   @ExceptionHandler(RecursoNaoEncontradoException.class)
-  public ResponseEntity<Map<String, Object>> handleNaoEncontrado(
-      RecursoNaoEncontradoException ex) {
+  public ResponseEntity<Map<String, Object>> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
     return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
   }
 

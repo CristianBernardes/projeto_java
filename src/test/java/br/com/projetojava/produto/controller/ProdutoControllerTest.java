@@ -36,8 +36,14 @@ class ProdutoControllerTest {
 
     ProdutoResponse response =
         new ProdutoResponse(
-            1L, "Teclado", "Mecânico", new BigDecimal("299.90"), 10, true,
-            LocalDateTime.now(), LocalDateTime.now());
+            1L,
+            "Teclado",
+            "Mecânico",
+            new BigDecimal("299.90"),
+            10,
+            true,
+            LocalDateTime.now(),
+            LocalDateTime.now());
 
     when(produtoService.criar(any(CriarProdutoRequest.class))).thenReturn(response);
 
@@ -66,7 +72,8 @@ class ProdutoControllerTest {
   @Test
   @DisplayName("POST /api/v1/produtos — deve retornar 422 quando payload inválido")
   void criar_deveRetornar422QuandoPayloadInvalido() throws Exception {
-    String payloadInvalido = """
+    String payloadInvalido =
+        """
         {"nome": "", "preco": -1, "estoque": -5}
         """;
 

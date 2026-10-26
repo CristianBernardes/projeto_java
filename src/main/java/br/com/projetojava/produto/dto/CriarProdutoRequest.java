@@ -14,17 +14,28 @@ import java.math.BigDecimal;
  */
 @Schema(description = "Dados para criação de um novo produto")
 public record CriarProdutoRequest(
-    @Schema(description = "Nome do produto", example = "Teclado Mecânico", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+            description = "Nome do produto",
+            example = "Teclado Mecânico",
+            requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank(message = "Nome é obrigatório.")
         @Size(max = 255, message = "Nome deve ter no máximo 255 caracteres.")
         String nome,
-    @Schema(description = "Descrição detalhada do produto", example = "Switch Cherry MX Red, RGB, ABNT2")
+    @Schema(
+            description = "Descrição detalhada do produto",
+            example = "Switch Cherry MX Red, RGB, ABNT2")
         String descricao,
-    @Schema(description = "Preço unitário em reais", example = "299.90", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+            description = "Preço unitário em reais",
+            example = "299.90",
+            requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull(message = "Preço é obrigatório.")
         @DecimalMin(value = "0.01", message = "Preço deve ser positivo.")
         BigDecimal preco,
-    @Schema(description = "Quantidade inicial em estoque", example = "10", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+            description = "Quantidade inicial em estoque",
+            example = "10",
+            requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull(message = "Estoque é obrigatório.")
         @Min(value = 0, message = "Estoque não pode ser negativo.")
         Integer estoque) {}

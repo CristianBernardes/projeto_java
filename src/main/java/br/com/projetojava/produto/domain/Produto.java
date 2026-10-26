@@ -109,7 +109,8 @@ public class Produto {
     }
     if (quantidade > this.estoque) {
       throw new IllegalArgumentException(
-          "Estoque insuficiente. Disponível: %d, solicitado: %d.".formatted(this.estoque, quantidade));
+          "Estoque insuficiente. Disponível: %d, solicitado: %d."
+              .formatted(this.estoque, quantidade));
     }
     this.estoque -= quantidade;
     this.atualizadoEm = LocalDateTime.now();

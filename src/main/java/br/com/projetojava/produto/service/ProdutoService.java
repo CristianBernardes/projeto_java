@@ -108,7 +108,6 @@ public class ProdutoService implements ProdutoServicePort {
   private Produto buscarEntidade(Long id) {
     return produtoRepository
         .findById(id)
-        .orElseThrow(
-            () -> new RecursoNaoEncontradoException("Produto não encontrado. id=" + id));
+        .orElseThrow(() -> new RecursoNaoEncontradoException("Produto não encontrado. id=" + id));
   }
 }
