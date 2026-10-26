@@ -144,6 +144,15 @@ public class Produto {
 
   // ── equals / hashCode baseados em chave de negócio ──────────────────────────
 
+  /**
+   * Dois produtos são iguais se possuem o mesmo {@code id} persistido.
+   *
+   * <p>Produtos transientes (id {@code null}) nunca são iguais entre si, evitando problemas em
+   * coleções antes do {@code persist}.
+   *
+   * @param o objeto a comparar
+   * @return {@code true} se ambos têm o mesmo id não-nulo
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -151,6 +160,12 @@ public class Produto {
     return id != null && id.equals(other.id);
   }
 
+  /**
+   * Hash constante baseado no tipo, garantindo estabilidade em {@code Set} e {@code Map} mesmo
+   * antes do {@code persist} (quando o id ainda é {@code null}).
+   *
+   * @return hash constante para todas as instâncias de {@link Produto}
+   */
   @Override
   public int hashCode() {
     return getClass().hashCode();
