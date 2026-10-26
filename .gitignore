@@ -1,5 +1,6 @@
 .docker/
 .docs/
+.vscode/
 target/
 *.class
 *.jar
