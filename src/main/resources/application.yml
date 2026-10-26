@@ -21,8 +21,13 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 server:
-  port: 8080
+  port: 8088
 
 management:
   endpoints:
@@ -46,3 +51,15 @@ springdoc:
     operationsSorter: method
     tagsSorter: alpha
     tryItOutEnabled: true
+
+app:
+  jwt:
+    secret: "minha-chave-secreta-de-pelo-menos-256-bits-para-hs256-segura"
+    expiration-ms: 86400000
+  upload:
+    directory: .docker/uploads
+    max-size-bytes: 10485760
+    allowed-types:
+      - image/jpeg
+      - image/png
+      - application/pdf

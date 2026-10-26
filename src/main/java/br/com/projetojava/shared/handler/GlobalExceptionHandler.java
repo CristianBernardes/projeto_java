@@ -1,74 +1,73 @@
 package br.com.projetojava.shared.handler;
 
-import br.com.projetojava.shared.exception.RecursoNaoEncontradoException;
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import org.springframework.http.HttpStatus;
+import br.com.projetojava.shared.handler.chain.ApiExceptionHandler;
+import br.com.projetojava.shared.handler.chain.FallbackExceptionHandler;
+import br.com.projetojava.shared.handler.chain.SpringWebExceptionHandler;
+import br.com.projetojava.shared.handler.chain.ValidationExceptionHandler;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Handler global de exceções da API.
+ * Single entry point for API exception handling.
  *
- * <p>Centraliza o tratamento de erros, garantindo respostas consistentes em formato JSON para todos
- * os endpoints.
+ * <p>Assembles the Chain of Responsibility once at initialization ({@link PostConstruct}), in
+ * order:
+ *
+ * <ol>
+ *   <li>{@link ApiExceptionHandler} — domain exceptions ({@code ApiException} and subclasses)
+ *   <li>{@link ValidationExceptionHandler} — Bean Validation errors ({@code @Valid})
+ *   <li>{@link SpringWebExceptionHandler} — Spring MVC protocol errors
+ *   <li>{@link FallbackExceptionHandler} — any unhandled exception ({@code 500})
+ * </ol>
+ *
+ * <p>No {@code try/catch} exists here: the chain encapsulates all decision logic.
  */
+@Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
+  private final ApiExceptionHandler apiExceptionHandler;
+  private final ValidationExceptionHandler validationExceptionHandler;
+  private final SpringWebExceptionHandler springWebExceptionHandler;
+  private final FallbackExceptionHandler fallbackExceptionHandler;
+
   /**
-   * Trata recursos não encontrados ({@code 404}).
+   * Assembles the handler chain once after dependency injection.
    *
-   * @param ex exceção lançada
-   * @return corpo de erro padronizado
+   * <p>Order matters: more specific links must come before more generic ones. {@link
+   * FallbackExceptionHandler} is always last and never passes forward.
    */
-  @ExceptionHandler(RecursoNaoEncontradoException.class)
-  public ResponseEntity<Map<String, Object>> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
-    return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
+  @PostConstruct
+  void buildChain() {
+    apiExceptionHandler
+        .setNext(validationExceptionHandler)
+        .setNext(springWebExceptionHandler)
+        .setNext(fallbackExceptionHandler);
   }
 
   /**
-   * Trata erros de validação de Bean Validation ({@code 422}).
+   * Intercepts all exceptions not handled by controllers and routes them through the chain.
    *
-   * @param ex exceção lançada pelo Spring ao falhar {@code @Valid}
-   * @return corpo de erro com a lista de campos inválidos
+   * @param ex captured exception
+   * @param request original HTTP request
+   * @return standardized error response with the appropriate HTTP status
    */
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Map<String, Object>> handleValidacao(MethodArgumentNotValidException ex) {
-    List<String> erros =
-        ex.getBindingResult().getFieldErrors().stream()
-            .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
-            .toList();
-    return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, "Dados inválidos.", erros);
-  }
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<ErrorResponse> handle(Exception ex, HttpServletRequest request) {
+    ErrorResponse response =
+        apiExceptionHandler
+            .handle(ex, request)
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "FallbackExceptionHandler did not handle the exception — chain misconfigured."));
 
-  /**
-   * Trata argumentos ilegais lançados pelo domínio ({@code 400}).
-   *
-   * @param ex exceção lançada
-   * @return corpo de erro padronizado
-   */
-  @ExceptionHandler(IllegalArgumentException.class)
-  public ResponseEntity<Map<String, Object>> handleArgumentoIlegal(IllegalArgumentException ex) {
-    return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
-  }
-
-  // ── Helper ──────────────────────────────────────────────────────────────────
-
-  private ResponseEntity<Map<String, Object>> buildResponse(
-      HttpStatus status, String mensagem, Object detalhes) {
-    Map<String, Object> corpo = new LinkedHashMap<>();
-    corpo.put("timestamp", LocalDateTime.now());
-    corpo.put("status", status.value());
-    corpo.put("erro", status.getReasonPhrase());
-    corpo.put("mensagem", mensagem);
-    if (detalhes != null) {
-      corpo.put("detalhes", detalhes);
-    }
-    return ResponseEntity.status(status).body(corpo);
+    return ResponseEntity.status(response.status()).body(response);
   }
 }

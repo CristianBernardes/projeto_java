@@ -1,21 +1,23 @@
 package br.com.projetojava.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuração da documentação OpenAPI 3 (Swagger UI).
+ * OpenAPI 3 documentation configuration (Swagger UI).
  *
- * <p>Disponível em:
+ * <p>Available at:
  *
  * <ul>
- *   <li>UI interativa: <a href="http://localhost:8088/swagger-ui.html">/swagger-ui.html</a>
+ *   <li>Interactive UI: <a href="http://localhost:8088/swagger-ui.html">/swagger-ui.html</a>
  *   <li>JSON spec: <a href="http://localhost:8088/api-docs">/api-docs</a>
  * </ul>
  */
@@ -23,27 +25,36 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
   /**
-   * Define os metadados globais da API expostos no Swagger UI.
+   * Defines the global API metadata exposed in Swagger UI.
    *
-   * @return instância configurada de {@link OpenAPI}
+   * @return configured {@link OpenAPI} instance
    */
   @Bean
   public OpenAPI openAPI() {
     return new OpenAPI()
         .info(
             new Info()
-                .title("Projeto Java — API REST")
+                .title("Project Java — REST API")
                 .description(
                     """
-                    API REST de estudo construída com **Spring Boot 3**, **JPA/Hibernate** e **PostgreSQL**.
+                    REST API built with **Spring Boot 3**, **JPA/Hibernate**, **PostgreSQL** and **JWT authentication**.
 
-                    Cobre o domínio de **Produtos**: criação, consulta, atualização e desativação (soft delete).
+                    Covers the **Products** domain: creation, retrieval, update and deactivation (soft delete).
 
-                    Desenvolvida como projeto de estudo para a vaga de Java/Grails.
+                    Includes **JWT authentication**, **file upload**, and a full **Chain of Responsibility** exception handler.
                     """)
                 .version("v1.0.0")
                 .contact(new Contact().name("Cristian Bernarde"))
                 .license(new License().name("MIT")))
-        .servers(List.of(new Server().url("http://localhost:8088").description("Local (Docker)")));
+        .servers(List.of(new Server().url("http://localhost:8088").description("Local (Docker)")))
+        .components(
+            new Components()
+                .addSecuritySchemes(
+                    "bearerAuth",
+                    new SecurityScheme()
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")
+                        .description("JWT token obtained from POST /api/v1/auth/login")));
   }
 }

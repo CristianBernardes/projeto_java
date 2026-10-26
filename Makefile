@@ -1,5 +1,5 @@
 .PHONY: help up up-db down build restart logs logs-app logs-db ps \
-        shell-app shell-db test format lint clean
+        shell-app shell-db test format lint clean migration
 
 # ─── Variáveis ────────────────────────────────────────────────────────────────
 COMPOSE     := docker compose
@@ -57,4 +57,17 @@ lint: ## Verifica a formatação sem aplicar (falha se houver diff)
 
 clean: ## Remove artefatos de build
 	$(MVN_RUN) clean -q
+
+migration: ## Cria uma nova migration. Uso: make migration name=add_column_x
+ifndef name
+	$(error Informe o nome: make migration name=add_column_x)
+endif
+	@NEXT=$$(ls src/main/resources/db/migration/V*.sql 2>/dev/null | \
+		grep -oP 'V\K[0-9]+' | sort -n | tail -1); \
+	NEXT=$$((NEXT + 1)); \
+	FILE="src/main/resources/db/migration/V$${NEXT}__$(name).sql"; \
+	echo "-- Migration: $(name)" > $$FILE; \
+	echo "-- Created at: $$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $$FILE; \
+	echo "" >> $$FILE; \
+	echo "Created: $$FILE"
 
