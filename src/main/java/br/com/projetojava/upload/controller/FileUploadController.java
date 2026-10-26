@@ -25,8 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * REST controller for file upload and download endpoints.
  *
- * <p>Files are always linked to a product ({@code productId}) and the authenticated user. All
- * endpoints require a valid JWT token.
+ * <p>Files can optionally be linked to a product ({@code productId}) and are always associated
+ * with the authenticated user when one is present. All endpoints require a valid JWT token.
  */
 @Tag(name = "File Uploads", description = "File upload and download management")
 @RestController
@@ -38,17 +38,17 @@ public class FileUploadController {
   private final UserRepository userRepository;
 
   /**
-   * Uploads a file and associates it with a product.
+   * Uploads a file and optionally associates it with a product.
    *
    * @param file multipart file to upload
-   * @param productId ID of the product this file belongs to
+   * @param productId optional ID of the product this file belongs to
    * @param authentication current authenticated user
    * @return {@code 200 OK} with file metadata
    */
   @Operation(
       summary = "Upload file",
       description =
-          "Uploads a file (JPEG, PNG or PDF, max 10 MB) and links it to a product."
+          "Uploads a file (JPEG, PNG or PDF, max 10 MB). Optionally links it to a product."
               + " Requires authentication.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
@@ -69,18 +69,54 @@ public class FileUploadController {
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
         @ApiResponse(
             responseCode = "404",
-            description = "Product or user not found",
+            description = "Product not found (when productId is provided)",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<FileUploadResponse> upload(
       @RequestParam("file") MultipartFile file,
-      @Parameter(description = "ID of the product this file belongs to", required = true)
-          @RequestParam("productId")
+      @Parameter(description = "Optional ID of the product this file belongs to")
+          @RequestParam(value = "productId", required = false)
           Long productId,
       Authentication authentication) {
     Long userId = resolveUserId(authentication);
     return ResponseEntity.ok(fileUploadService.store(file, productId, userId));
+  }
+
+  /**
+   * Sets a previously uploaded file as the authenticated user's active avatar.
+   *
+   * <p>The previous avatar is not deleted — it remains in the database as history.
+   *
+   * @param id ID of the file upload to use as avatar
+   * @param authentication current authenticated user
+   * @return {@code 204 No Content} on success
+   */
+  @Operation(
+      summary = "Set user avatar",
+      description =
+          "Sets an already-uploaded file as the authenticated user's active profile photo."
+              + " Requires authentication.",
+      security = @SecurityRequirement(name = "bearerAuth"),
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Avatar updated successfully"),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Authentication required",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(
+            responseCode = "404",
+            description = "File not found",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+      })
+  @PutMapping("/{id}/avatar")
+  public ResponseEntity<Void> setAvatar(
+      @Parameter(description = "File identifier", example = "3", required = true) @PathVariable
+          Long id,
+      Authentication authentication) {
+    Long userId = resolveUserId(authentication);
+    fileUploadService.setUserAvatar(id, userId);
+    return ResponseEntity.noContent().build();
   }
 
   /**

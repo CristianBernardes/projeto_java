@@ -11,9 +11,10 @@ import lombok.NoArgsConstructor;
 /**
  * JPA entity representing an uploaded file record.
  *
- * <p>Morphological table: each row belongs to one {@link Product} (many images per product) and
- * was uploaded by one {@link User}. The actual file content is stored on disk; this entity tracks
- * the path and associated metadata.
+ * <p>Morphological table: each row optionally belongs to one {@link Product} (many images per
+ * product) and was optionally uploaded by one {@link User}. Both associations are nullable — a
+ * file can exist without being linked to a product or a user. The actual file content is stored on
+ * disk; this entity tracks the path and associated metadata.
  */
 @Entity
 @Table(name = "file_uploads")
@@ -40,29 +41,32 @@ public class FileUpload {
   @Column(name = "path", nullable = false)
   private String path;
 
-  /** Product this file belongs to. A product can have many files/images. */
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "product_id", nullable = false)
+  /**
+   * Product this file belongs to. Nullable — a file can exist without a product. A product can
+   * have many files/images.
+   */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "product_id")
   private Product product;
 
-  /** User who uploaded this file. */
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "user_id", nullable = false)
+  /** User who uploaded this file. Nullable — a file can exist without an owner. */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id")
   private User uploadedBy;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
   /**
-   * Creates a new file upload record linked to a product and a user.
+   * Creates a new file upload record.
    *
    * @param originalName original file name as provided by the client
    * @param storedName UUID-based name used for storage (collision-safe)
    * @param contentType MIME type of the file
    * @param sizeBytes file size in bytes
    * @param path absolute path where the file is stored on disk
-   * @param product product this file belongs to
-   * @param uploadedBy user who performed the upload
+   * @param product product this file belongs to, or {@code null} if not linked to a product
+   * @param uploadedBy user who performed the upload, or {@code null} if anonymous
    * @return new {@link FileUpload} instance
    */
   public static FileUpload create(

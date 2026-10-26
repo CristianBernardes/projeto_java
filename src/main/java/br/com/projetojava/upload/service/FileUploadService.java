@@ -66,29 +66,36 @@ public class FileUploadService implements FileUploadServicePort {
   }
 
   /**
-   * Stores an uploaded file linked to a product and persists its metadata.
+   * Stores an uploaded file and optionally links it to a product and/or a user.
    *
    * @param file multipart file from the HTTP request
-   * @param productId ID of the product this file belongs to
-   * @param userId ID of the authenticated user performing the upload
+   * @param productId ID of the product this file belongs to, or {@code null}
+   * @param userId ID of the authenticated user performing the upload, or {@code null}
    * @return response DTO with file metadata
    * @throws BadRequestException if the file type is not allowed or exceeds the size limit
-   * @throws ResourceNotFoundException if the product or user does not exist
+   * @throws ResourceNotFoundException if the given product or user ID does not exist
    */
   @Override
   @Transactional
   public FileUploadResponse store(MultipartFile file, Long productId, Long userId) {
     validateFile(file);
 
-    Product product =
-        productRepository
-            .findById(productId)
-            .orElseThrow(() -> new ResourceNotFoundException("Product not found. id=" + productId));
+    Product product = null;
+    if (productId != null) {
+      product =
+          productRepository
+              .findById(productId)
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("Product not found. id=" + productId));
+    }
 
-    User user =
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found. id=" + userId));
+    User user = null;
+    if (userId != null) {
+      user =
+          userRepository
+              .findById(userId)
+              .orElseThrow(() -> new ResourceNotFoundException("User not found. id=" + userId));
+    }
 
     String originalName = file.getOriginalFilename();
     String extension = extractExtension(originalName);
@@ -120,6 +127,33 @@ public class FileUploadService implements FileUploadServicePort {
         userId);
 
     return toResponse(saved);
+  }
+
+  /**
+   * Sets the given file upload as the active avatar for a user.
+   *
+   * <p>The previous avatar is not deleted — it remains in {@code file_uploads} as history.
+   *
+   * @param fileId ID of the {@link FileUpload} to use as avatar
+   * @param userId ID of the user whose avatar will be updated
+   * @throws ResourceNotFoundException if the file or user does not exist
+   */
+  @Override
+  @Transactional
+  public void setUserAvatar(Long fileId, Long userId) {
+    FileUpload file =
+        fileUploadRepository
+            .findById(fileId)
+            .orElseThrow(() -> new ResourceNotFoundException("File not found. id=" + fileId));
+
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found. id=" + userId));
+
+    user.updateAvatar(file);
+    userRepository.save(user);
+    log.info("Avatar updated: user_id={}, file_id={}.", userId, fileId);
   }
 
   /**
@@ -179,8 +213,8 @@ public class FileUploadService implements FileUploadServicePort {
         upload.getOriginalName(),
         upload.getContentType(),
         upload.getSizeBytes(),
-        upload.getProduct().getId(),
-        upload.getUploadedBy().getId(),
+        upload.getProduct() != null ? upload.getProduct().getId() : null,
+        upload.getUploadedBy() != null ? upload.getUploadedBy().getId() : null,
         upload.getCreatedAt());
   }
 }
