@@ -108,3 +108,5 @@ app:
       order-dlq: order.created.dlq
     kafka:
       order-events-topic: order-events
+      order-events-topic-partitions: 3
+      order-events-topic-replicas: 1
