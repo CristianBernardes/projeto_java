@@ -5,11 +5,13 @@ import br.com.projetojava.upload.dto.FileUploadResponse;
 import br.com.projetojava.upload.service.FileUploadServicePort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -34,31 +36,34 @@ public class FileUploadController {
   private final AuthenticatedUserResolver authenticatedUserResolver;
 
   /**
-   * Uploads a file and stores its metadata.
+   * Uploads one or more files and stores their metadata.
    *
-   * <p>The file is optionally associated with a product (e.g., a product photo) via the {@code
-   * productId} query parameter. The uploaded-by user is always resolved from the authenticated
+   * <p>The files are optionally associated with a product (e.g., product photos) via the {@code
+   * productId} query parameter — multiple files may be sent in a single request, since a product
+   * can have several photos. The uploaded-by user is always resolved from the authenticated
    * principal.
    *
-   * @param file multipart file to upload
-   * @param productId optional product this file belongs to
+   * @param files multipart files to upload
+   * @param productId optional product these files belong to
    * @param authentication current authenticated user
-   * @return {@code 200 OK} with file metadata
+   * @return {@code 200 OK} with the metadata of every uploaded file
    */
   @Operation(
-      summary = "Upload file",
+      summary = "Upload files",
       description =
-          "Uploads a file (JPEG, PNG or PDF, max 10MB). Requires authentication. Optionally"
-              + " associates the file with a product via the productId query parameter.",
+          "Uploads one or more files (JPEG, PNG or PDF, max 10MB each). Requires authentication."
+              + " Optionally associates the files with a product via the productId query"
+              + " parameter — send multiple files at once to upload several photos for the same"
+              + " product.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "File uploaded successfully",
+            description = "Files uploaded successfully",
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = FileUploadResponse.class))),
+                    array = @ArraySchema(schema = @Schema(implementation = FileUploadResponse.class)))),
         @ApiResponse(
             responseCode = "400",
             description = "Invalid file (type not allowed or size exceeded)",
@@ -69,12 +74,12 @@ public class FileUploadController {
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<FileUploadResponse> upload(
-      @RequestParam("file") MultipartFile file,
+  public ResponseEntity<List<FileUploadResponse>> upload(
+      @RequestParam("files") List<MultipartFile> files,
       @RequestParam(value = "productId", required = false) Long productId,
       Authentication authentication) {
     Long userId = authenticatedUserResolver.resolveUserId(authentication);
-    return ResponseEntity.ok(fileUploadService.store(file, productId, userId));
+    return ResponseEntity.ok(fileUploadService.storeAll(files, productId, userId));
   }
 
   /**

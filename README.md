@@ -189,8 +189,17 @@ Tabela morfológica: um arquivo pode pertencer a um **produto** (várias fotos p
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| `POST` | `/api/v1/files?productId={id}` | JWT | Upload de arquivo (JPEG/PNG/PDF, máx. 10MB), `productId` opcional. Não vincula o arquivo a um usuário como avatar — use `/api/v1/users/me/avatar` para isso |
+| `POST` | `/api/v1/files?productId={id}` | JWT | Upload de um ou **vários** arquivos de uma vez (campo `files`, JPEG/PNG/PDF, máx. 10MB cada), `productId` opcional. Não vincula os arquivos a um usuário como avatar — use `/api/v1/users/me/avatar` para isso (apenas um arquivo por vez) |
 | `GET` | `/api/v1/files/{id}` | JWT | Download do arquivo |
+
+```bash
+# Enviar várias fotos de uma vez para o mesmo produto
+curl -X POST "http://localhost:8080/api/v1/files?productId=1" \
+  -H "Authorization: ******" \
+  -F "files=@foto1.jpg" \
+  -F "files=@foto2.jpg"
+```
+
 
 ### Perfil do usuário e avatar
 

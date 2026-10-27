@@ -1,6 +1,7 @@
 package br.com.projetojava.upload.service;
 
 import br.com.projetojava.upload.dto.FileUploadResponse;
+import java.util.List;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +24,20 @@ public interface FileUploadServicePort {
    *     allowed or the file exceeds the size limit
    */
   FileUploadResponse store(MultipartFile file, Long productId, Long userId);
+
+  /**
+   * Stores multiple uploaded files and persists their metadata.
+   *
+   * <p>Used for product photos, where several images may belong to the same product.
+   *
+   * @param files multipart files from the HTTP request
+   * @param productId ID of the product these files belong to (nullable)
+   * @param userId ID of the authenticated user (nullable)
+   * @return response DTOs with each file's metadata, in the same order as {@code files}
+   * @throws br.com.projetojava.shared.exception.http4xx.BadRequestException if any file is empty,
+   *     has a disallowed type, or exceeds the size limit
+   */
+  List<FileUploadResponse> storeAll(List<MultipartFile> files, Long productId, Long userId);
 
   /**
    * Loads a stored file as a {@link Resource} for download.

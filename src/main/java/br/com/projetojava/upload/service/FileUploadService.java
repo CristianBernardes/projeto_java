@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,6 +103,31 @@ public class FileUploadService implements FileUploadServicePort {
         saved.getContentType(),
         saved.getSizeBytes(),
         saved.getCreatedAt());
+  }
+
+  /**
+   * Stores multiple uploaded files and persists their metadata.
+   *
+   * <p>Used for product photos, where several images may belong to the same product. Each file is
+   * validated and stored independently; if any file is invalid, the whole batch is rejected before
+   * any file is written to disk.
+   *
+   * @param files multipart files from the HTTP request
+   * @param productId ID of the product these files belong to (nullable)
+   * @param userId ID of the authenticated user (nullable)
+   * @return response DTOs with each file's metadata, in the same order as {@code files}
+   * @throws BadRequestException if the list is empty, or any file is empty, has a disallowed type,
+   *     or exceeds the size limit
+   */
+  @Override
+  @Transactional
+  public List<FileUploadResponse> storeAll(List<MultipartFile> files, Long productId, Long userId) {
+    if (files == null || files.isEmpty()) {
+      throw new BadRequestException("At least one file must be provided.");
+    }
+    files.forEach(this::validateFile);
+
+    return files.stream().map(file -> store(file, productId, userId)).collect(Collectors.toList());
   }
 
   /**
