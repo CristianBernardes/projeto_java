@@ -1,0 +1,102 @@
+{
+  "title": "Projeto Java — Aplicação (JVM & HTTP)",
+  "uid": "projeto-java-app",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "tags": ["projeto-java", "spring-boot", "jvm"],
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "10s",
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Status da aplicação (UP/DOWN)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "targets": [
+        { "expr": "up{job=\"projeto-java-app\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Heap JVM usado (bytes)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 9, "x": 6, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        { "expr": "sum(jvm_memory_used_bytes{area=\"heap\", application=\"projeto-java\"}) by (id)", "refId": "A", "legendFormat": "{{id}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Threads ativas",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 9, "x": 15, "y": 0 },
+      "targets": [
+        { "expr": "jvm_threads_live_threads{application=\"projeto-java\"}", "refId": "A", "legendFormat": "live" },
+        { "expr": "jvm_threads_daemon_threads{application=\"projeto-java\"}", "refId": "B", "legendFormat": "daemon" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Requisições HTTP por status (taxa/s)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{application=\"projeto-java\"}[1m])) by (status)", "refId": "A", "legendFormat": "{{status}}" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Latência média HTTP por rota (ms)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [
+        {
+          "expr": "1000 * sum(rate(http_server_requests_seconds_sum{application=\"projeto-java\"}[1m])) by (uri) / sum(rate(http_server_requests_seconds_count{application=\"projeto-java\"}[1m])) by (uri)",
+          "refId": "A",
+          "legendFormat": "{{uri}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Uso de CPU do processo",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "max": 1, "min": 0 } },
+      "targets": [
+        { "expr": "process_cpu_usage{application=\"projeto-java\"}", "refId": "A", "legendFormat": "cpu" }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Conexões de pool do datasource (HikariCP)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        { "expr": "hikaricp_connections_active{application=\"projeto-java\"}", "refId": "A", "legendFormat": "ativas" },
+        { "expr": "hikaricp_connections_idle{application=\"projeto-java\"}", "refId": "B", "legendFormat": "ociosas" },
+        { "expr": "hikaricp_connections_pending{application=\"projeto-java\"}", "refId": "C", "legendFormat": "aguardando" }
+      ]
+    }
+  ]
+}

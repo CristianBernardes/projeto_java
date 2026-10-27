@@ -1,0 +1,81 @@
+{
+  "title": "Projeto Java — Kafka",
+  "uid": "projeto-java-kafka",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "tags": ["projeto-java", "kafka"],
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "10s",
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Exporter UP",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "targets": [
+        { "expr": "up{job=\"kafka\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Brokers no cluster",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [
+        { "expr": "kafka_brokers", "refId": "A" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Partições por tópico",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "kafka_topic_partitions", "refId": "A", "legendFormat": "{{topic}}" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Offset atual por tópico/partição",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        { "expr": "kafka_topic_partition_current_offset", "refId": "A", "legendFormat": "{{topic}}-{{partition}}" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Lag por consumer group (soma por tópico)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "kafka_consumergroup_lag_sum", "refId": "A", "legendFormat": "{{consumergroup}} / {{topic}}" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Membros por consumer group",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        { "expr": "kafka_consumergroup_members", "refId": "A", "legendFormat": "{{consumergroup}}" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Métricas da aplicação Spring Boot (Micrometer), expostas em /actuator/prometheus
+  - job_name: "projeto-java-app"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["app:8080"]
+
+  # Métricas nativas do RabbitMQ (plugin rabbitmq_prometheus, já habilitado por padrão)
+  - job_name: "rabbitmq"
+    static_configs:
+      - targets: ["rabbitmq:15692"]
+
+  # Métricas do Kafka via kafka-exporter (broker, tópicos, consumer groups, lag)
+  - job_name: "kafka"
+    static_configs:
+      - targets: ["kafka-exporter:9308"]

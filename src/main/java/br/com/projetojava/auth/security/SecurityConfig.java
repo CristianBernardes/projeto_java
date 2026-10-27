@@ -39,7 +39,8 @@ public class SecurityConfig {
    *   <li>Auth endpoints ({@code /api/v1/auth/**}) — public
    *   <li>{@code GET /api/v1/products} and {@code GET /api/v1/products/{id}} — public (read-only)
    *   <li>Swagger UI and API docs — public
-   *   <li>Actuator health/info — public
+   *   <li>Actuator health/info/prometheus — public (prometheus is scraped by Prometheus, which has
+   *       no JWT)
    *   <li>All other requests — require valid JWT
    * </ul>
    *
@@ -73,8 +74,13 @@ public class SecurityConfig {
                         "/v3/api-docs",
                         "/v3/api-docs/**")
                     .permitAll()
-                    // Actuator — public for health/info only
-                    .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info")
+                    // Actuator — public for health/info/prometheus only (scraped by Prometheus,
+                    // which cannot authenticate with a JWT)
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/actuator/health",
+                        "/actuator/info",
+                        "/actuator/prometheus")
                     .permitAll()
                     // Block all other actuator access
                     .requestMatchers("/actuator/**")

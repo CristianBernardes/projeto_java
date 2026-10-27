@@ -1,0 +1,81 @@
+{
+  "title": "Projeto Java — RabbitMQ",
+  "uid": "projeto-java-rabbitmq",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "tags": ["projeto-java", "rabbitmq"],
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "10s",
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Broker UP",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "targets": [
+        { "expr": "up{job=\"rabbitmq\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Conexões abertas",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [
+        { "expr": "rabbitmq_connections", "refId": "A" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Mensagens prontas para consumo (por fila)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "rabbitmq_queue_messages_ready", "refId": "A", "legendFormat": "{{queue}}" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Mensagens não confirmadas (unacked, por fila)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        { "expr": "rabbitmq_queue_messages_unacked", "refId": "A", "legendFormat": "{{queue}}" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Taxa de publicação (msgs/s, por fila)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "rate(rabbitmq_queue_messages_published_total[1m])", "refId": "A", "legendFormat": "{{queue}}" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Total de mensagens na fila (ready + unacked)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        { "expr": "rabbitmq_queue_messages", "refId": "A", "legendFormat": "{{queue}}" }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Projeto Java — API REST de Estudo
 
-API REST construída com **Spring Boot 3**, **JPA/Hibernate**, **PostgreSQL**, **RabbitMQ** e **Kafka**, totalmente containerizada com **Docker** e **Docker Compose**.
+API REST construída com **Spring Boot 3**, **JPA/Hibernate**, **PostgreSQL**, **RabbitMQ** e **Kafka**, totalmente containerizada com **Docker** e **Docker Compose**, com observabilidade completa via **Prometheus** e **Grafana**.
 
 Projeto de estudo focado na stack da vaga: Java · Spring Boot · Hibernate · PostgreSQL · APIs REST · Mensageria assíncrona · Docker · Clean Code · SOLID · DDD · Design Patterns.
 
@@ -19,6 +19,8 @@ Projeto de estudo focado na stack da vaga: Java · Spring Boot · Hibernate · P
 | Mensageria (stream de eventos) | Apache Kafka |
 | Migrations | Flyway |
 | Documentação | SpringDoc OpenAPI 3 (Swagger UI) |
+| Métricas | Micrometer + Prometheus |
+| Dashboards | Grafana |
 | Formatação | Spotless + Google Java Format |
 | Build | Maven 3.9 |
 | Container | Docker + Docker Compose |
@@ -38,14 +40,15 @@ Projeto de estudo focado na stack da vaga: Java · Spring Boot · Hibernate · P
 ## Início rápido
 
 ```bash
-# 1. Sobe banco + RabbitMQ + Kafka + aplicação (faz o build automaticamente)
+# 1. Sobe banco + RabbitMQ + Kafka + aplicação + observabilidade (faz o build automaticamente)
 make up
 
 # 2. Acompanha os logs da aplicação
 make logs-app
 ```
 
-A API estará disponível em **http://localhost:8088**.
+A API estará disponível em **http://localhost:8088** e o Grafana em **http://localhost:3001**
+(veja a seção [Observabilidade](#observabilidade) para todas as interfaces gráficas).
 
 ---
 
@@ -252,6 +255,13 @@ src/
 │       └── db/migration/            # V1..V5 — Flyway
 └── test/
     └── java/br/com/projetojava/     # Espelha a estrutura de main/
+
+observability/                       # Configuração versionada do Prometheus/Grafana
+├── prometheus/prometheus.yml        # Scrape config (app, RabbitMQ, Kafka exporter)
+└── grafana/
+    ├── provisioning/datasources/    # Datasource Prometheus, auto-configurado
+    ├── provisioning/dashboards/     # Provider que carrega os dashboards abaixo
+    └── dashboards/                  # Dashboards JSON (app, RabbitMQ, Kafka)
 ```
 
 ### Injeção de dependência via interface
@@ -277,8 +287,50 @@ Toda classe depende de uma **interface** (`*Port`), nunca de outra classe concre
 | RabbitMQ (AMQP) | `5672` |
 | RabbitMQ Management UI | `15672` |
 | Kafka | `9092` |
+| Kafka UI | `8081` |
+| Kafka Exporter (métricas Prometheus) | `9308` |
+| Prometheus | `9090` |
+| Grafana | `3001` |
 
-> Portas `5432` e `8080` são evitadas de propósito (reservadas por outros containers na rede do host).
+> Portas `5432`, `8080` e `3000` são evitadas de propósito (reservadas por outros containers na rede do host).
+
+---
+
+## Observabilidade
+
+Cada peça de infraestrutura tem sua própria interface gráfica — nada fica só por `curl`/CLI.
+
+| Interface | URL | Login |
+|---|---|---|
+| **Swagger UI** (API) | http://localhost:8088/swagger-ui.html | JWT (veja [Autenticação](#autenticação)) |
+| **RabbitMQ Management** | http://localhost:15672 | `java` / `java` |
+| **Kafka UI** ([kafbat/kafka-ui](https://github.com/kafbat/kafka-ui)) | http://localhost:8081 | sem login |
+| **Prometheus** | http://localhost:9090 | sem login |
+| **Grafana** | http://localhost:3001 | `admin` / `admin` |
+
+### RabbitMQ Management
+
+Visualiza filas, mensagens prontas/não confirmadas (unacked), DLQ, conexões e taxa de consumo em tempo real. Já vem habilitado por padrão na imagem `rabbitmq:3.13-management-alpine`.
+
+### Kafka UI
+
+Navega tópicos, partições, mensagens, consumer groups e lag — sem precisar de `kafka-console-consumer`/`kafka-topics.sh` na mão. Conecta automaticamente ao broker do `docker-compose.yml` (`kafka:9092`).
+
+### Prometheus + Grafana
+
+A aplicação Java expõe métricas (JVM, HTTP, pool de conexões HikariCP) em `/actuator/prometheus` via Micrometer. O RabbitMQ expõe as próprias métricas nativamente (plugin `rabbitmq_prometheus`, porta `15692`). O Kafka é coberto pelo [`kafka-exporter`](https://github.com/danielqsj/kafka_exporter) (porta `9308`), que traduz offsets/lag/partições em métricas Prometheus.
+
+O Prometheus (configurado em [`observability/prometheus/prometheus.yml`](observability/prometheus/prometheus.yml)) faz scrape dos três alvos a cada 15s. O Grafana já sobe com:
+
+- **Datasource Prometheus** pré-configurado ([`observability/grafana/provisioning/datasources`](observability/grafana/provisioning/datasources))
+- **3 dashboards prontos**, provisionados automaticamente na pasta "Projeto Java" ([`observability/grafana/dashboards`](observability/grafana/dashboards)):
+  - **Aplicação (JVM & HTTP)** — status UP/DOWN, heap, threads, requisições por status, latência por rota, CPU, pool HikariCP
+  - **RabbitMQ** — conexões, mensagens prontas/unacked por fila, taxa de publicação
+  - **Kafka** — brokers, partições por tópico, offsets, lag por consumer group
+
+Nenhuma configuração manual é necessária: basta `make up` e abrir http://localhost:3001.
+
+> A pasta [`observability/`](observability) é versionada no Git (é configuração, não dado de runtime) — diferente de `.docker/`, que guarda apenas os volumes de dados dos containers e nunca é commitado.
 
 ---
 
