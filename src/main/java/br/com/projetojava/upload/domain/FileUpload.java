@@ -37,8 +37,11 @@ public class FileUpload {
   @Column(name = "path", nullable = false)
   private String path;
 
-  @Column(name = "uploaded_by")
-  private Long uploadedBy;
+  @Column(name = "product_id")
+  private Long productId;
+
+  @Column(name = "user_id")
+  private Long userId;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
@@ -46,12 +49,17 @@ public class FileUpload {
   /**
    * Creates a new file upload record.
    *
+   * <p>Exactly one of {@code productId} or {@code userId} is typically set (the morphological
+   * association), though both may be {@code null} for an orphaned/unassociated file, and both are
+   * optional per the business rule that uploads are never mandatory.
+   *
    * @param originalName original file name as provided by the client
    * @param storedName UUID-based name used for storage (collision-safe)
    * @param contentType MIME type of the file
    * @param sizeBytes file size in bytes
    * @param path absolute path where the file is stored on disk
-   * @param uploadedBy ID of the user who uploaded the file (nullable)
+   * @param productId ID of the product this file belongs to (nullable)
+   * @param userId ID of the user who uploaded the file, or whose avatar this is (nullable)
    * @return new {@link FileUpload} instance
    */
   public static FileUpload create(
@@ -60,14 +68,16 @@ public class FileUpload {
       String contentType,
       long sizeBytes,
       String path,
-      Long uploadedBy) {
+      Long productId,
+      Long userId) {
     FileUpload upload = new FileUpload();
     upload.originalName = originalName;
     upload.storedName = storedName;
     upload.contentType = contentType;
     upload.sizeBytes = sizeBytes;
     upload.path = path;
-    upload.uploadedBy = uploadedBy;
+    upload.productId = productId;
+    upload.userId = userId;
     upload.createdAt = LocalDateTime.now();
     return upload;
   }

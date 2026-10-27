@@ -5,7 +5,7 @@ import br.com.projetojava.auth.dto.AuthResponse;
 import br.com.projetojava.auth.dto.LoginRequest;
 import br.com.projetojava.auth.dto.RegisterRequest;
 import br.com.projetojava.auth.repository.UserRepository;
-import br.com.projetojava.auth.security.JwtService;
+import br.com.projetojava.auth.security.JwtServicePort;
 import br.com.projetojava.shared.exception.http4xx.ConflictException;
 import br.com.projetojava.shared.exception.http4xx.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Implementation of authentication use cases.
  *
- * <p>Handles user registration and login, delegating token generation to {@link JwtService} and
+ * <p>Handles user registration and login, delegating token generation to {@link JwtServicePort} and
  * password hashing to {@link PasswordEncoder}.
  */
 @Slf4j
@@ -27,7 +27,7 @@ public class AuthService implements AuthServicePort {
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
-  private final JwtService jwtService;
+  private final JwtServicePort jwtService;
 
   /**
    * Registers a new user and returns a JWT token.
@@ -50,7 +50,8 @@ public class AuthService implements AuthServicePort {
     userRepository.save(user);
 
     String token = jwtService.generateToken(user.getEmail(), user.getRole());
-    return new AuthResponse(token, user.getEmail(), user.getRole(), jwtService.extractExpiration(token));
+    return new AuthResponse(
+        token, user.getEmail(), user.getRole(), jwtService.extractExpiration(token));
   }
 
   /**
@@ -75,6 +76,7 @@ public class AuthService implements AuthServicePort {
     }
 
     String token = jwtService.generateToken(user.getEmail(), user.getRole());
-    return new AuthResponse(token, user.getEmail(), user.getRole(), jwtService.extractExpiration(token));
+    return new AuthResponse(
+        token, user.getEmail(), user.getRole(), jwtService.extractExpiration(token));
   }
 }

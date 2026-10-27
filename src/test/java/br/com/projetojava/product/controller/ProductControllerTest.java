@@ -37,7 +37,10 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @WebMvcTest(
     controllers = ProductController.class,
-    excludeAutoConfiguration = {SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class},
+    excludeAutoConfiguration = {
+      SecurityAutoConfiguration.class,
+      SecurityFilterAutoConfiguration.class
+    },
     excludeFilters = {
       @org.springframework.context.annotation.ComponentScan.Filter(
           type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE,

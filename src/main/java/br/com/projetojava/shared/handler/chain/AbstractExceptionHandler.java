@@ -8,8 +8,8 @@ import java.util.Optional;
  * Base link of the exception handling chain.
  *
  * <p>Implements chaining: each subclass checks whether it can handle the exception via {@link
- * #supports(Exception)}. If so, it delegates to {@link #process(Exception, HttpServletRequest)}.
- * If not, it passes to the next link via {@link #next}.
+ * #supports(Exception)}. If so, it delegates to {@link #process(Exception, HttpServletRequest)}. If
+ * not, it passes to the next link via {@link #next}.
  *
  * <p>Subclasses only need to implement {@link #supports} and {@link #process}, without worrying
  * about chaining.

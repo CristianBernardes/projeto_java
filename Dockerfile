@@ -16,6 +16,8 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder /app/target/*.jar app.jar
 
+RUN mkdir -p /app/.docker/uploads && chown -R appuser:appgroup /app
+
 USER appuser
 
 EXPOSE 8080

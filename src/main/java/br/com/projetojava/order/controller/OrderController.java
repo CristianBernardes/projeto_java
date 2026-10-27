@@ -1,0 +1,132 @@
+package br.com.projetojava.order.controller;
+
+import br.com.projetojava.order.dto.CreateOrderRequest;
+import br.com.projetojava.order.dto.OrderResponse;
+import br.com.projetojava.order.service.OrderServicePort;
+import br.com.projetojava.shared.security.AuthenticatedUserResolver;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.net.URI;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+/**
+ * REST controller for the {@code /api/v1/orders} resource.
+ *
+ * <p>Order creation is <strong>asynchronous</strong>: {@code POST} returns {@code 202 Accepted}
+ * immediately with the order in {@code PENDING} status. Stock reservation happens in the background
+ * via RabbitMQ (see the {@code order.messaging} package); clients should poll {@code GET /{id}} to
+ * observe the final {@code CONFIRMED} or {@code FAILED} status.
+ */
+@Tag(name = "Orders", description = "Asynchronous order creation with background stock reservation")
+@RestController
+@RequestMapping("/api/v1/orders")
+@RequiredArgsConstructor
+public class OrderController {
+
+  private final OrderServicePort orderService;
+  private final AuthenticatedUserResolver authenticatedUserResolver;
+
+  /**
+   * Creates a new order for the authenticated user.
+   *
+   * <p>The response status is {@code 202 Accepted}, not {@code 201 Created}: the order has been
+   * accepted for processing, but stock has not been reserved yet — that happens asynchronously.
+   *
+   * @param request validated order creation data
+   * @param authentication current authenticated user
+   * @return {@code 202 Accepted} with the order in {@code PENDING} status and a {@code Location}
+   *     header pointing to the status endpoint
+   */
+  @Operation(
+      summary = "Create order",
+      description =
+          "Accepts a new order for asynchronous processing. The order starts in PENDING status;"
+              + " stock is reserved in the background via a message queue. Poll GET /{id} to"
+              + " observe the final CONFIRMED or FAILED status.",
+      security = @SecurityRequirement(name = "bearerAuth"),
+      responses = {
+        @ApiResponse(
+            responseCode = "202",
+            description = "Order accepted for processing (status: PENDING)",
+            content =
+                @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Authentication required",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(
+            responseCode = "404",
+            description = "A referenced product does not exist",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(
+            responseCode = "422",
+            description = "Invalid input data",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+      })
+  @PostMapping
+  public ResponseEntity<OrderResponse> create(
+      @Valid @RequestBody CreateOrderRequest request, Authentication authentication) {
+    Long userId = authenticatedUserResolver.resolveUserId(authentication);
+    OrderResponse created = orderService.create(request, userId);
+    URI location =
+        ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(created.id())
+            .toUri();
+    return ResponseEntity.accepted().location(location).body(created);
+  }
+
+  /**
+   * Finds an order by its identifier, including its current processing status.
+   *
+   * @param id order identifier
+   * @return {@code 200 OK} with the order, or {@code 404} if not found
+   */
+  @Operation(
+      summary = "Find order by ID",
+      description =
+          "Returns an order by its unique identifier, including its current status"
+              + " (PENDING, CONFIRMED, FAILED or CANCELLED). Requires authentication.",
+      security = @SecurityRequirement(name = "bearerAuth"),
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Order found",
+            content =
+                @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Authentication required",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Order not found",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+      })
+  @GetMapping("/{id}")
+  public ResponseEntity<OrderResponse> findById(
+      @Parameter(description = "Order identifier", example = "1", required = true) @PathVariable
+          Long id) {
+    return ResponseEntity.ok(orderService.findById(id));
+  }
+}

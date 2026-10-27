@@ -1,6 +1,7 @@
 .docker/
 .docs/
 .vscode/
+.rag_db/
 target/
 *.class
 *.jar

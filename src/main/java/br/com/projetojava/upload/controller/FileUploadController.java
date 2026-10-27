@@ -1,5 +1,6 @@
 package br.com.projetojava.upload.controller;
 
+import br.com.projetojava.shared.security.AuthenticatedUserResolver;
 import br.com.projetojava.upload.dto.FileUploadResponse;
 import br.com.projetojava.upload.service.FileUploadServicePort;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,18 +31,25 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileUploadController {
 
   private final FileUploadServicePort fileUploadService;
+  private final AuthenticatedUserResolver authenticatedUserResolver;
 
   /**
    * Uploads a file and stores its metadata.
    *
+   * <p>The file is optionally associated with a product (e.g., a product photo) via the {@code
+   * productId} query parameter. The uploaded-by user is always resolved from the authenticated
+   * principal.
+   *
    * @param file multipart file to upload
+   * @param productId optional product this file belongs to
    * @param authentication current authenticated user
    * @return {@code 200 OK} with file metadata
    */
   @Operation(
       summary = "Upload file",
       description =
-          "Uploads a file (JPEG, PNG or PDF, max 10MB). Requires authentication.",
+          "Uploads a file (JPEG, PNG or PDF, max 10MB). Requires authentication. Optionally"
+              + " associates the file with a product via the productId query parameter.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
@@ -62,9 +70,11 @@ public class FileUploadController {
       })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<FileUploadResponse> upload(
-      @RequestParam("file") MultipartFile file, Authentication authentication) {
-    Long userId = resolveUserId(authentication);
-    return ResponseEntity.ok(fileUploadService.store(file, userId));
+      @RequestParam("file") MultipartFile file,
+      @RequestParam(value = "productId", required = false) Long productId,
+      Authentication authentication) {
+    Long userId = authenticatedUserResolver.resolveUserId(authentication);
+    return ResponseEntity.ok(fileUploadService.store(file, productId, userId));
   }
 
   /**
@@ -98,14 +108,5 @@ public class FileUploadController {
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"" + resource.getFilename() + "\"")
         .body(resource);
-  }
-
-  // ── Private helpers ──────────────────────────────────────────────────────────
-
-  private Long resolveUserId(Authentication authentication) {
-    if (authentication == null) return null;
-    // The principal is the email string set by JwtAuthFilter; user ID lookup is omitted
-    // to avoid an extra DB call — uploadedBy is informational only.
-    return null;
   }
 }

@@ -62,13 +62,14 @@ public class FileUploadService implements FileUploadServicePort {
    * Stores an uploaded file and persists its metadata.
    *
    * @param file multipart file from the HTTP request
-   * @param uploadedBy ID of the authenticated user
+   * @param productId ID of the product this file belongs to (nullable)
+   * @param userId ID of the authenticated user (nullable)
    * @return response DTO with file metadata
    * @throws BadRequestException if the file type is not allowed or exceeds the size limit
    */
   @Override
   @Transactional
-  public FileUploadResponse store(MultipartFile file, Long uploadedBy) {
+  public FileUploadResponse store(MultipartFile file, Long productId, Long userId) {
     validateFile(file);
 
     String originalName = file.getOriginalFilename();
@@ -89,7 +90,8 @@ public class FileUploadService implements FileUploadServicePort {
             file.getContentType(),
             file.getSize(),
             destination.toString(),
-            uploadedBy);
+            productId,
+            userId);
 
     FileUpload saved = fileUploadRepository.save(upload);
     log.info("File stored: id={}, name='{}'.", saved.getId(), storedName);

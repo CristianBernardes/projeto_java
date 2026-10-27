@@ -82,8 +82,7 @@ public class ProductController {
       })
   @GetMapping("/{id}")
   public ResponseEntity<ProductResponse> findById(
-      @Parameter(description = "Product identifier", example = "1", required = true)
-          @PathVariable
+      @Parameter(description = "Product identifier", example = "1", required = true) @PathVariable
           Long id) {
     return ResponseEntity.ok(productService.findById(id));
   }
@@ -113,8 +112,7 @@ public class ProductController {
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping
-  public ResponseEntity<ProductResponse> create(
-      @Valid @RequestBody CreateProductRequest request) {
+  public ResponseEntity<ProductResponse> create(@Valid @RequestBody CreateProductRequest request) {
     ProductResponse created = productService.create(request);
     URI location =
         ServletUriComponentsBuilder.fromCurrentRequest()
@@ -154,8 +152,7 @@ public class ProductController {
       })
   @PutMapping("/{id}")
   public ResponseEntity<ProductResponse> update(
-      @Parameter(description = "Product identifier", example = "1", required = true)
-          @PathVariable
+      @Parameter(description = "Product identifier", example = "1", required = true) @PathVariable
           Long id,
       @Valid @RequestBody UpdateProductRequest request) {
     return ResponseEntity.ok(productService.update(id, request));
@@ -182,8 +179,7 @@ public class ProductController {
       })
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deactivate(
-      @Parameter(description = "Product identifier", example = "1", required = true)
-          @PathVariable
+      @Parameter(description = "Product identifier", example = "1", required = true) @PathVariable
           Long id) {
     productService.deactivate(id);
     return ResponseEntity.noContent().build();

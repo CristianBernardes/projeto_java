@@ -26,8 +26,38 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: java
+    password: java
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          multiplier: 2
+        default-requeue-rejected: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: projeto-java
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: br.com.projetojava.order.event
+
 server:
-  port: 8088
+  port: 8080
 
 management:
   endpoints:
@@ -63,3 +93,15 @@ app:
       - image/jpeg
       - image/png
       - application/pdf
+  messaging:
+    outbox:
+      poll-interval-ms: 2000
+      batch-size: 50
+    rabbitmq:
+      order-exchange: order.exchange
+      order-created-queue: order.created.queue
+      order-created-routing-key: order.created
+      order-dlx: order.dlx
+      order-dlq: order.created.dlq
+    kafka:
+      order-events-topic: order-events

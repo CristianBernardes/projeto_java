@@ -16,9 +16,12 @@ import org.springframework.stereotype.Service;
  *
  * <p>Uses HMAC-SHA256 (HS256) with a secret key configured via {@code app.jwt.secret}. Token
  * expiration is controlled by {@code app.jwt.expiration-ms}.
+ *
+ * <p>Implements {@link JwtServicePort} to respect the <em>Dependency Inversion Principle</em>:
+ * consumers depend on the interface, not on this concrete class.
  */
 @Service
-public class JwtService {
+public class JwtService implements JwtServicePort {
 
   private final SecretKey secretKey;
   private final long expirationMs;
@@ -43,6 +46,7 @@ public class JwtService {
    * @param role user role stored as a claim
    * @return signed JWT string
    */
+  @Override
   public String generateToken(String subject, String role) {
     Date now = new Date();
     Date expiry = new Date(now.getTime() + expirationMs);
@@ -62,6 +66,7 @@ public class JwtService {
    * @param token JWT string
    * @return subject claim value
    */
+  @Override
   public String extractSubject(String token) {
     return parseClaims(token).getSubject();
   }
@@ -72,6 +77,7 @@ public class JwtService {
    * @param token JWT string
    * @return role claim value
    */
+  @Override
   public String extractRole(String token) {
     return parseClaims(token).get("role", String.class);
   }
@@ -82,6 +88,7 @@ public class JwtService {
    * @param token JWT string
    * @return expiration as {@link LocalDateTime}
    */
+  @Override
   public LocalDateTime extractExpiration(String token) {
     Date expiry = parseClaims(token).getExpiration();
     return expiry.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -93,6 +100,7 @@ public class JwtService {
    * @param token JWT string
    * @return {@code true} if the token is valid
    */
+  @Override
   public boolean isTokenValid(String token) {
     try {
       parseClaims(token);

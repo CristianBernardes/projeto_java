@@ -17,7 +17,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * Spring Security configuration.
  *
  * <p>Defines the security filter chain with JWT-based stateless authentication. Public endpoints
- * are explicitly listed; all others require a valid JWT.
+ * are explicitly listed; all others require a valid JWT. {@link RestAuthenticationEntryPoint} and
+ * {@link RestAccessDeniedHandler} ensure {@code 401}/{@code 403} rejections use the same {@code
+ * ErrorResponse} contract as every other API error.
  */
 @Configuration
 @EnableWebSecurity
@@ -25,6 +27,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final JwtAuthFilter jwtAuthFilter;
+  private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+  private final RestAccessDeniedHandler restAccessDeniedHandler;
 
   /**
    * Configures the security filter chain.
@@ -45,16 +49,21 @@ public class SecurityConfig {
    */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(AbstractHttpConfigurer::disable)
+    http.csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(
+            e ->
+                e.authenticationEntryPoint(restAuthenticationEntryPoint)
+                    .accessDeniedHandler(restAccessDeniedHandler))
         .authorizeHttpRequests(
             auth ->
                 auth
                     // Auth endpoints — public
-                    .requestMatchers("/api/v1/auth/**").permitAll()
+                    .requestMatchers("/api/v1/auth/**")
+                    .permitAll()
                     // Product read — public
-                    .requestMatchers(HttpMethod.GET, "/api/v1/products", "/api/v1/products/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/products", "/api/v1/products/**")
+                    .permitAll()
                     // Swagger UI — public
                     .requestMatchers(
                         "/swagger-ui.html",
@@ -65,11 +74,14 @@ public class SecurityConfig {
                         "/v3/api-docs/**")
                     .permitAll()
                     // Actuator — public for health/info only
-                    .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info")
+                    .permitAll()
                     // Block all other actuator access
-                    .requestMatchers("/actuator/**").denyAll()
+                    .requestMatchers("/actuator/**")
+                    .denyAll()
                     // Everything else requires authentication
-                    .anyRequest().authenticated())
+                    .anyRequest()
+                    .authenticated())
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

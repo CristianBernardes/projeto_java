@@ -25,7 +25,8 @@ public record ProductResponse(
         String description,
     @Schema(description = "Unit price", example = "299.90") BigDecimal price,
     @Schema(description = "Stock quantity", example = "10") int stock,
-    @Schema(description = "Indicates whether the product is active", example = "true") boolean active,
+    @Schema(description = "Indicates whether the product is active", example = "true")
+        boolean active,
     @Schema(description = "Creation date and time") LocalDateTime createdAt,
     @Schema(description = "Last update date and time") LocalDateTime updatedAt) {
 

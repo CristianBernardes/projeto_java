@@ -1,8 +1,8 @@
 # Projeto Java — API REST de Estudo
 
-API REST construída com **Spring Boot 3**, **JPA/Hibernate**, **PostgreSQL** e **Flyway**, totalmente containerizada com **Docker** e **Docker Compose**.
+API REST construída com **Spring Boot 3**, **JPA/Hibernate**, **PostgreSQL**, **RabbitMQ** e **Kafka**, totalmente containerizada com **Docker** e **Docker Compose**.
 
-Projeto de estudo focado na stack da vaga: Java · Spring Boot · Hibernate · PostgreSQL · APIs REST · Docker · Clean Code · SOLID · DDD · Design Patterns.
+Projeto de estudo focado na stack da vaga: Java · Spring Boot · Hibernate · PostgreSQL · APIs REST · Mensageria assíncrona · Docker · Clean Code · SOLID · DDD · Design Patterns.
 
 ---
 
@@ -12,8 +12,11 @@ Projeto de estudo focado na stack da vaga: Java · Spring Boot · Hibernate · P
 |---|---|
 | Linguagem | Java 21 |
 | Framework | Spring Boot 3.3.5 |
+| Segurança | Spring Security + JWT (`io.jsonwebtoken`) |
 | ORM | Spring Data JPA / Hibernate |
 | Banco de dados | PostgreSQL 14 |
+| Mensageria (fila de trabalho) | RabbitMQ |
+| Mensageria (stream de eventos) | Apache Kafka |
 | Migrations | Flyway |
 | Documentação | SpringDoc OpenAPI 3 (Swagger UI) |
 | Formatação | Spotless + Google Java Format |
@@ -28,14 +31,14 @@ Projeto de estudo focado na stack da vaga: Java · Spring Boot · Hibernate · P
 - [Docker Compose](https://docs.docker.com/compose/) ≥ 2.20
 - `make`
 
-> **Tudo roda dentro do Docker.** Não é necessário ter Java, Maven ou PostgreSQL instalados na máquina.
+> **Tudo roda dentro do Docker.** Não é necessário ter Java, Maven, PostgreSQL, RabbitMQ ou Kafka instalados na máquina. A aplicação nunca deve ser executada fora de container.
 
 ---
 
 ## Início rápido
 
 ```bash
-# 1. Sobe banco + aplicação (faz o build automaticamente)
+# 1. Sobe banco + RabbitMQ + Kafka + aplicação (faz o build automaticamente)
 make up
 
 # 2. Acompanha os logs da aplicação
@@ -63,6 +66,7 @@ A API estará disponível em **http://localhost:8088**.
   test              Executa os testes dentro do container Maven
   format            Formata o código com Spotless (Google Java Format)
   lint              Verifica a formatação sem aplicar (falha se houver diff)
+  migration         Cria uma nova migration Flyway. Uso: make migration name=add_column_x
   clean             Remove artefatos de build
 ```
 
@@ -77,94 +81,114 @@ Com a aplicação rodando, acesse:
 | http://localhost:8088/swagger-ui.html | Swagger UI interativo |
 | http://localhost:8088/api-docs | Spec OpenAPI 3 em JSON |
 | http://localhost:8088/actuator/health | Health check |
+| http://localhost:15672 | RabbitMQ Management UI (usuário/senha: `java`/`java`) |
+
+A maioria dos endpoints exige um JWT. No Swagger UI, clique em **Authorize** e informe `Bearer <token>` obtido em `/api/v1/auth/login`.
 
 ---
 
-## Endpoints
+## Autenticação
 
-### Produtos — `GET /api/v1/produtos`
+### `POST /api/v1/auth/register`
 
-Lista todos os produtos ativos.
+Cria um novo usuário e já retorna um JWT.
+
+**Body:**
+```json
+{ "name": "Cristian", "email": "cristian@example.com", "password": "senha12345" }
+```
+
+### `POST /api/v1/auth/login`
+
+**Body:**
+```json
+{ "email": "cristian@example.com", "password": "senha12345" }
+```
 
 **Resposta `200`:**
 ```json
-[
-  {
-    "id": 1,
-    "nome": "Teclado Mecânico",
-    "descricao": "Switch Cherry MX Red, RGB, ABNT2",
-    "preco": 299.90,
-    "estoque": 10,
-    "ativo": true,
-    "criadoEm": "2026-10-26T12:00:00",
-    "atualizadoEm": "2026-10-26T12:00:00"
-  }
-]
+{ "token": "eyJ...", "email": "cristian@example.com", "role": "USER", "expiresAt": "2026-10-28T03:00:00" }
+```
+
+Use o `token` no header `Authorization: Bearer <token>` nas chamadas seguintes.
+
+---
+
+## Produtos
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| `GET` | `/api/v1/products` | Pública | Lista produtos ativos |
+| `GET` | `/api/v1/products/{id}` | Pública | Busca produto por ID |
+| `POST` | `/api/v1/products` | JWT | Cria produto |
+| `PUT` | `/api/v1/products/{id}` | JWT | Atualiza nome/descrição/preço |
+| `DELETE` | `/api/v1/products/{id}` | JWT | Desativa produto (soft delete) |
+
+**`POST /api/v1/products`:**
+```json
+{ "name": "Teclado Mecânico", "description": "Switch Cherry MX Red, RGB, ABNT2", "price": 299.90, "stock": 10 }
 ```
 
 ---
 
-### `GET /api/v1/produtos/{id}`
+## Pedidos (assíncronos) — o coração da mensageria
 
-Busca um produto pelo ID.
+Diferente dos produtos, a criação de pedido **não reserva estoque de forma síncrona**. O fluxo é:
 
-| Código | Descrição |
-|---|---|
-| `200` | Produto encontrado |
-| `404` | Produto não encontrado |
+```mermaid
+sequenceDiagram
+    participant Cliente
+    participant API as OrderController
+    participant DB as PostgreSQL (outbox_events)
+    participant Poller as OutboxEventPublisher
+    participant Rabbit as RabbitMQ
+    participant Consumer as StockReservationConsumer
+    participant Kafka as Kafka (order-events)
 
----
+    Cliente->>API: POST /api/v1/orders
+    API->>DB: salva Order (PENDING) + OutboxEvent (mesma transação)
+    API-->>Cliente: 202 Accepted (status PENDING)
+    Poller->>DB: poll periódico de eventos não publicados
+    Poller->>Rabbit: publica order.created
+    Poller->>Kafka: publica order.created (auditoria)
+    Rabbit->>Consumer: entrega order.created
+    Consumer->>DB: debita estoque (lock pessimista) ou compensa se faltar
+    Consumer->>DB: Order -> CONFIRMED ou FAILED
+    Consumer->>Kafka: publica order.confirmed / order.stock-failed
+    Cliente->>API: GET /api/v1/orders/{id} (poll do cliente)
+    API-->>Cliente: status atual (PENDING/CONFIRMED/FAILED)
+```
 
-### `POST /api/v1/produtos`
+- **Transactional Outbox:** o evento `order.created` é gravado na **mesma transação** do pedido — nunca existe o problema de "pedido salvo mas evento perdido" ou vice-versa.
+- **RabbitMQ** é usado como **fila de trabalho**: exatamente um consumidor processa cada pedido (reserva de estoque).
+- **Kafka** é usado como **stream de auditoria**: todo evento (`order.created`, `order.confirmed`, `order.stock-failed`) é publicado no tópico `order-events`, particionado por `orderId`, para quem quiser consumir de forma independente (analytics, auditoria futura).
+- **Saga com compensação:** se qualquer item do pedido não tiver estoque suficiente, todo estoque já debitado **daquele mesmo pedido** é devolvido (compensado) antes de marcar o pedido como `FAILED` — nunca fica um pedido com reserva parcial.
+- **Idempotência:** RabbitMQ/Kafka entregam mensagens *at-least-once* (podem reentregar). Uma tabela `processed_messages` garante que uma mensagem redelivered não debita o estoque duas vezes.
+- **Chain of Responsibility para erros de mensageria:** qualquer exceção levantada ao processar uma mensagem passa por uma cadeia de responsabilidade (`MessagingErrorHandler`) que decide se a mensagem deve ser reprocessada (`RETRY`), enviada direto para a dead-letter queue (`REJECT_TO_DEAD_LETTER`) ou confirmada (`ACKNOWLEDGE`) — nunca um `try/catch` solto no consumer.
 
-Cria um novo produto.
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| `POST` | `/api/v1/orders` | JWT | Cria pedido — responde `202 Accepted` com status `PENDING` |
+| `GET` | `/api/v1/orders/{id}` | JWT | Consulta status atual do pedido |
 
-**Body:**
+**`POST /api/v1/orders`:**
 ```json
 {
-  "nome": "Teclado Mecânico",
-  "descricao": "Switch Cherry MX Red, RGB, ABNT2",
-  "preco": 299.90,
-  "estoque": 10
+  "deliveryAddress": { "street": "Rua A, 100", "city": "São Paulo", "state": "SP", "zip": "01000-000" },
+  "items": [ { "productId": 1, "quantity": 2 } ]
 }
 ```
 
-| Código | Descrição |
-|---|---|
-| `201` | Produto criado — header `Location` aponta para o recurso |
-| `422` | Dados inválidos |
-
 ---
 
-### `PUT /api/v1/produtos/{id}`
+## Upload de arquivos
 
-Atualiza nome, descrição e preço de um produto.
+Tabela morfológica: um arquivo pode pertencer a um **produto** (várias fotos por produto) ou a um **usuário** (uma foto de avatar), ambos opcionais — nenhum upload é obrigatório.
 
-**Body:**
-```json
-{
-  "nome": "Teclado Mecânico Pro",
-  "descricao": "Switch Cherry MX Blue, RGB, ABNT2",
-  "preco": 349.90
-}
-```
-
-| Código | Descrição |
-|---|---|
-| `200` | Produto atualizado |
-| `404` | Produto não encontrado |
-| `422` | Dados inválidos |
-
----
-
-### `DELETE /api/v1/produtos/{id}`
-
-Desativa um produto (**soft delete** — não remove do banco).
-
-| Código | Descrição |
-|---|---|
-| `204` | Produto desativado |
-| `404` | Produto não encontrado |
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| `POST` | `/api/v1/files?productId={id}` | JWT | Upload de arquivo (JPEG/PNG/PDF, máx. 10MB), `productId` opcional |
+| `GET` | `/api/v1/files/{id}` | JWT | Download do arquivo |
 
 ---
 
@@ -174,31 +198,42 @@ Desativa um produto (**soft delete** — não remove do banco).
 src/
 ├── main/
 │   ├── java/br/com/projetojava/
-│   │   ├── ProjetoJavaApplication.java
-│   │   ├── config/
-│   │   │   └── OpenApiConfig.java          # Configuração Swagger/OpenAPI
-│   │   ├── produto/
-│   │   │   ├── controller/ProdutoController.java
-│   │   │   ├── domain/Produto.java          # Entidade rica (regras de negócio)
-│   │   │   ├── dto/
-│   │   │   │   ├── CriarProdutoRequest.java
-│   │   │   │   ├── AtualizarProdutoRequest.java
-│   │   │   │   └── ProdutoResponse.java
-│   │   │   ├── repository/ProdutoRepository.java
-│   │   │   └── service/ProdutoService.java
+│   │   ├── ProjectApplication.java
+│   │   ├── config/OpenApiConfig.java
+│   │   ├── auth/                    # Registro, login, JWT, Spring Security
+│   │   ├── product/                 # Catálogo de produtos (CRUD)
+│   │   ├── order/                   # Agregado Order + saga de reserva de estoque
+│   │   │   ├── domain/              # Order, OrderItem, OrderStatus, DeliveryAddress
+│   │   │   ├── event/               # Eventos de domínio publicados nos brokers
+│   │   │   └── messaging/           # RabbitMQ/Kafka publishers e StockReservationConsumer
+│   │   ├── outbox/                  # Transactional Outbox pattern
+│   │   ├── messaging/
+│   │   │   ├── idempotency/         # Guarda contra reentrega at-least-once
+│   │   │   └── errorhandling/       # Chain of Responsibility para erros de mensageria
+│   │   ├── upload/                  # Upload/download de arquivos
 │   │   └── shared/
-│   │       ├── exception/RecursoNaoEncontradoException.java
-│   │       └── handler/GlobalExceptionHandler.java
+│   │       ├── exception/           # Hierarquia de exceções (um tipo por status HTTP)
+│   │       ├── handler/chain/       # Chain of Responsibility para exceções HTTP
+│   │       └── security/            # AuthenticatedUserResolver
 │   └── resources/
 │       ├── application.yml
 │       ├── application-docker.yml
-│       └── db/migration/
-│           └── V1__create_produtos.sql
+│       └── db/migration/            # V1..V5 — Flyway
 └── test/
-    └── java/br/com/projetojava/
-        ├── produto/controller/ProdutoControllerTest.java
-        └── produto/service/ProdutoServiceTest.java
+    └── java/br/com/projetojava/     # Espelha a estrutura de main/
 ```
+
+### Injeção de dependência via interface
+
+Toda classe depende de uma **interface** (`*Port`), nunca de outra classe concreta — o mesmo princípio de `$this->app->bind(Interface::class, Implementacao::class)` do Laravel, mas resolvido automaticamente pelo Spring: quando existe uma única implementação `@Service`/`@Component` de uma interface, o Spring a injeta sem nenhuma configuração extra. Exemplos: `ProductServicePort`, `OrderServicePort`, `JwtServicePort`, `OutboxEventServicePort`, `OrderMessagePublisherPort`, `OrderEventPublisherPort`, `StockReservationServicePort`, `IdempotencyGuardPort`.
+
+### Design patterns utilizados
+
+- **Chain of Responsibility** — tratamento de exceções HTTP (`shared/handler/chain`) e de erros de mensageria RabbitMQ/Kafka (`messaging/errorhandling/chain`)
+- **Template Method** — `AbstractExceptionHandler`/`AbstractMessageErrorHandler` implementam o encadeamento; subclasses só decidem `supports`/`process`
+- **Transactional Outbox** — `outbox/` garante atomicidade entre persistência e publicação de eventos
+- **Saga (com compensação)** — `StockReservationService` reserva estoque item a item e compensa em caso de falha parcial
+- **Dependency Inversion / Ports & Adapters** — toda dependência entre camadas é via interface
 
 ---
 
@@ -208,6 +243,11 @@ src/
 |---|---|
 | API (app) | `8088` |
 | PostgreSQL | `5433` |
+| RabbitMQ (AMQP) | `5672` |
+| RabbitMQ Management UI | `15672` |
+| Kafka | `9092` |
+
+> Portas `5432` e `8080` são evitadas de propósito (reservadas por outros containers na rede do host).
 
 ---
 
@@ -220,6 +260,8 @@ SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/java
 SPRING_DATASOURCE_USERNAME=java
 SPRING_DATASOURCE_PASSWORD=java
 SPRING_PROFILES_ACTIVE=docker
+SPRING_RABBITMQ_HOST=rabbitmq
+SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 ```
 
 ---
@@ -241,7 +283,13 @@ make lint     # verifica sem aplicar (útil no CI)
 make test
 ```
 
-Os testes unitários rodam dentro do container Maven (sem precisar do banco):
+Os testes unitários rodam dentro do container Maven (sem precisar do banco, RabbitMQ ou Kafka reais — tudo mockado com Mockito). Cobrem, entre outros:
 
-- `ProdutoServiceTest` — 3 testes com Mockito
-- `ProdutoControllerTest` — 3 testes com `@WebMvcTest`
+- `ProductServiceTest` / `ProductControllerTest`
+- `AuthServiceTest`
+- `OrderTest` / `OrderServiceTest`
+- `StockReservationServiceTest` (saga de reserva de estoque com compensação)
+- `StockReservationConsumerTest` (decisão RETRY/REJECT_TO_DEAD_LETTER/ACKNOWLEDGE)
+- `IdempotencyGuardTest`
+- `GlobalExceptionHandlerTest` (chain HTTP — todos os status 4xx/5xx)
+- `MessagingErrorHandlerTest` e os testes de cada elo da chain de mensageria

@@ -10,7 +10,7 @@ import br.com.projetojava.auth.dto.AuthResponse;
 import br.com.projetojava.auth.dto.LoginRequest;
 import br.com.projetojava.auth.dto.RegisterRequest;
 import br.com.projetojava.auth.repository.UserRepository;
-import br.com.projetojava.auth.security.JwtService;
+import br.com.projetojava.auth.security.JwtServicePort;
 import br.com.projetojava.shared.exception.http4xx.ConflictException;
 import br.com.projetojava.shared.exception.http4xx.UnauthorizedException;
 import java.time.LocalDateTime;
@@ -29,7 +29,7 @@ class AuthServiceTest {
 
   @Mock private UserRepository userRepository;
   @Mock private PasswordEncoder passwordEncoder;
-  @Mock private JwtService jwtService;
+  @Mock private JwtServicePort jwtService;
 
   @InjectMocks private AuthService authService;
 
@@ -40,8 +40,7 @@ class AuthServiceTest {
 
     when(userRepository.existsByEmail("user@example.com")).thenReturn(false);
     when(passwordEncoder.encode("secret123")).thenReturn("$2a$hash");
-    when(userRepository.save(any(User.class)))
-        .thenAnswer(inv -> inv.getArgument(0));
+    when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
     when(jwtService.generateToken(anyString(), anyString())).thenReturn("jwt-token");
     when(jwtService.extractExpiration("jwt-token")).thenReturn(LocalDateTime.now().plusDays(1));
 
@@ -101,7 +100,6 @@ class AuthServiceTest {
     LoginRequest request = new LoginRequest("unknown@example.com", "secret123");
     when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> authService.login(request))
-        .isInstanceOf(UnauthorizedException.class);
+    assertThatThrownBy(() -> authService.login(request)).isInstanceOf(UnauthorizedException.class);
   }
 }

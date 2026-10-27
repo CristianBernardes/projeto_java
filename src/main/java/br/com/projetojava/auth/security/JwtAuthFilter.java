@@ -19,15 +19,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * JWT authentication filter executed once per request.
  *
  * <p>Extracts the bearer token from the {@code Authorization} header, validates it via {@link
- * JwtService}, and sets the {@link org.springframework.security.core.context.SecurityContext} so
- * that downstream filters and controllers see an authenticated principal.
+ * JwtServicePort}, and sets the {@link org.springframework.security.core.context.SecurityContext}
+ * so that downstream filters and controllers see an authenticated principal.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-  private final JwtService jwtService;
+  private final JwtServicePort jwtService;
 
   /**
    * Processes the JWT token from the request header and populates the security context.
