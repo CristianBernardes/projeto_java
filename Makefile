@@ -1,4 +1,4 @@
-.PHONY: help up up-db down build restart logs logs-app logs-db ps \
+.PHONY: help up up-db down destroy build restart logs logs-app logs-db ps \
         shell-app shell-db test format lint clean migration
 
 # ─── Variáveis ────────────────────────────────────────────────────────────────
@@ -19,6 +19,9 @@ up-db: ## Sobe apenas o banco de dados
 
 down: ## Para e remove os containers
 	$(COMPOSE) down
+
+destroy: ## Mata containers, remove imagens e volumes do projeto (mantém dados do .docker/ intactos)
+	$(COMPOSE) --profile dev down -v --rmi all --remove-orphans
 
 build: ## Reconstrói as imagens sem usar cache
 	$(COMPOSE) build --no-cache

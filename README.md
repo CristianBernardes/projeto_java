@@ -58,6 +58,7 @@ A API estará disponível em **http://localhost:8088** e o Grafana em **http://l
   up                Sobe todos os serviços (build se necessário)
   up-db             Sobe apenas o banco de dados
   down              Para e remove os containers
+  destroy           Mata containers, remove imagens e volumes do projeto (mantém dados do .docker/ intactos)
   build             Reconstrói as imagens sem usar cache
   restart           Reinicia todos os serviços
   logs              Acompanha os logs de todos os serviços
