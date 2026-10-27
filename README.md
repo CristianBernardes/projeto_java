@@ -284,16 +284,42 @@ Toda classe depende de uma **interface** (`*Port`), nunca de outra classe concre
 
 ## Variáveis de ambiente
 
-Configuradas no `docker-compose.yml`. Para sobrescrever localmente, crie um arquivo `.env` na raiz:
+As credenciais e endpoints dos serviços (banco, RabbitMQ, Kafka, JWT, upload) eram antes fixos
+(_hardcoded_) em [`application.yml`](src/main/resources/application.yml). Agora todos são
+configuráveis via variável de ambiente, com o valor antigo como padrão — ou seja, nada muda se
+você não fizer nada.
 
-```env
-SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/java
-SPRING_DATASOURCE_USERNAME=java
-SPRING_DATASOURCE_PASSWORD=java
-SPRING_PROFILES_ACTIVE=docker
-SPRING_RABBITMQ_HOST=rabbitmq
-SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+- **`.env.example`** (versionado): documenta todas as variáveis disponíveis para a aplicação Java,
+  com valores de desenvolvimento (sem segredo real de produção).
+- **`.env`** (local, no `.gitignore`, nunca commitado): copie o `.env.example` e ajuste se precisar.
+  É lido automaticamente pela aplicação via [spring-dotenv](https://github.com/paulschwarz/spring-dotenv)
+  quando ela roda **fora do container** (ex.: pela IDE, para debug), apontando para os serviços
+  expostos nas portas do host pelo `docker-compose.yml`.
+- Isso é só para a **aplicação Java** — o `docker-compose.yml` continua com seus próprios valores
+  (usados pelos containers `postgres`/`rabbitmq`/`kafka`/`app`), sem qualquer alteração.
+- Em produção, defina as variáveis de ambiente reais no orquestrador (elas sempre têm prioridade
+  sobre o `.env`) — nunca reaproveite os valores de exemplo.
+
+```bash
+cp .env.example .env
 ```
+
+| Variável | Padrão (dev) | Descrição |
+|---|---|---|
+| `DB_HOST` | `localhost` | Host do PostgreSQL |
+| `DB_PORT` | `5433` | Porta do PostgreSQL |
+| `DB_NAME` | `java` | Nome do banco |
+| `DB_USERNAME` | `java` | Usuário do banco |
+| `DB_PASSWORD` | `java` | Senha do banco |
+| `RABBITMQ_HOST` | `localhost` | Host do RabbitMQ |
+| `RABBITMQ_PORT` | `5672` | Porta AMQP do RabbitMQ |
+| `RABBITMQ_USERNAME` | `java` | Usuário do RabbitMQ |
+| `RABBITMQ_PASSWORD` | `java` | Senha do RabbitMQ |
+| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` | Endereço do broker Kafka |
+| `JWT_SECRET` | *(chave de exemplo)* | Segredo HS256 para assinar os tokens JWT |
+| `JWT_EXPIRATION_MS` | `86400000` (24h) | Tempo de expiração do token, em milissegundos |
+| `UPLOAD_DIRECTORY` | `.docker/uploads` | Diretório onde os arquivos enviados são salvos |
+| `UPLOAD_MAX_SIZE_BYTES` | `10485760` (10MB) | Tamanho máximo por arquivo enviado |
 
 ---
 

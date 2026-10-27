@@ -3,9 +3,9 @@ spring:
     name: projeto-java
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/java
-    username: java
-    password: java
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:java}
+    username: ${DB_USERNAME:java}
+    password: ${DB_PASSWORD:java}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -27,10 +27,10 @@ spring:
       max-request-size: 10MB
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: java
-    password: java
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:java}
+    password: ${RABBITMQ_PASSWORD:java}
     listener:
       simple:
         retry:
@@ -41,7 +41,7 @@ spring:
         default-requeue-rejected: false
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -84,11 +84,11 @@ springdoc:
 
 app:
   jwt:
-    secret: "minha-chave-secreta-de-pelo-menos-256-bits-para-hs256-segura"
-    expiration-ms: 86400000
+    secret: ${JWT_SECRET:minha-chave-secreta-de-pelo-menos-256-bits-para-hs256-segura}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   upload:
-    directory: .docker/uploads
-    max-size-bytes: 10485760
+    directory: ${UPLOAD_DIRECTORY:.docker/uploads}
+    max-size-bytes: ${UPLOAD_MAX_SIZE_BYTES:10485760}
     allowed-types:
       - image/jpeg
       - image/png
