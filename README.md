@@ -83,7 +83,9 @@ Com a aplicação rodando, acesse:
 | http://localhost:8088/actuator/health | Health check |
 | http://localhost:15672 | RabbitMQ Management UI (usuário/senha: `java`/`java`) |
 
-A maioria dos endpoints exige um JWT. No Swagger UI, clique em **Authorize** e informe `Bearer <token>` obtido em `/api/v1/auth/login`.
+A maioria dos endpoints exige um JWT. No Swagger UI, clique em **Authorize** e cole **apenas o token puro**, sem o prefixo `Bearer` (o Swagger já adiciona esse prefixo automaticamente, por causa do `scheme("bearer")` configurado em `OpenApiConfig`). Obtenha o token em `/api/v1/auth/login`.
+
+> Fora do Swagger (curl, Postman, Insomnia etc.), o prefixo `Bearer ` **deve** ser incluído manualmente no header `Authorization`.
 
 ---
 
@@ -110,7 +112,7 @@ Cria um novo usuário e já retorna um JWT.
 { "token": "eyJ...", "email": "cristian@example.com", "role": "USER", "expiresAt": "2026-10-28T03:00:00" }
 ```
 
-Use o `token` no header `Authorization: Bearer <token>` nas chamadas seguintes.
+Use o `token` no header `Authorization: Bearer <token>` nas chamadas seguintes (via curl/Postman). No Swagger UI, cole apenas o `<token>`, sem `Bearer ` — veja a seção [Documentação da API](#documentação-da-api).
 
 ---
 
@@ -187,8 +189,28 @@ Tabela morfológica: um arquivo pode pertencer a um **produto** (várias fotos p
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
-| `POST` | `/api/v1/files?productId={id}` | JWT | Upload de arquivo (JPEG/PNG/PDF, máx. 10MB), `productId` opcional |
+| `POST` | `/api/v1/files?productId={id}` | JWT | Upload de arquivo (JPEG/PNG/PDF, máx. 10MB), `productId` opcional. Não vincula o arquivo a um usuário como avatar — use `/api/v1/users/me/avatar` para isso |
 | `GET` | `/api/v1/files/{id}` | JWT | Download do arquivo |
+
+### Perfil do usuário e avatar
+
+O avatar do usuário autenticado é um ponteiro (`users.avatar_id`) para uma linha de `file_uploads`. Fazer upload de um novo avatar não apaga o anterior — ele continua em `file_uploads` como histórico, apenas o ponteiro é atualizado.
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| `GET` | `/api/v1/users/me` | JWT | Retorna o perfil do usuário autenticado (`id`, `email`, `role`, `avatarId`, `avatarDownloadUrl`) |
+| `POST` | `/api/v1/users/me/avatar` | JWT | Faz upload de uma imagem (JPEG/PNG, máx. 10MB) e a define como avatar do usuário autenticado |
+
+```bash
+# Enviar uma foto e já definir como avatar do usuário logado
+curl -X POST http://localhost:8080/api/v1/users/me/avatar \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@foto.jpg"
+
+# Consultar o próprio perfil (inclui avatarDownloadUrl se houver avatar)
+curl http://localhost:8080/api/v1/users/me \
+  -H "Authorization: Bearer <token>"
+```
 
 ---
 

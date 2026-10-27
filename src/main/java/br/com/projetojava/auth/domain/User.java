@@ -33,6 +33,9 @@ public class User {
   @Column(name = "active", nullable = false)
   private boolean active = true;
 
+  @Column(name = "avatar_id")
+  private Long avatarId;
+
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
@@ -56,6 +59,21 @@ public class User {
     user.createdAt = LocalDateTime.now();
     user.updatedAt = LocalDateTime.now();
     return user;
+  }
+
+  /**
+   * Sets the file upload that represents this user's current profile photo.
+   *
+   * <p>Only the pointer changes — the previous {@code file_uploads} row (if any) is kept as history
+   * and is never deleted, so a user can freely replace their avatar without losing the old upload
+   * record.
+   *
+   * @param avatarId identifier of the {@code file_uploads} row to use as the avatar, or {@code
+   *     null} to remove the current avatar
+   */
+  public void updateAvatar(Long avatarId) {
+    this.avatarId = avatarId;
+    this.updatedAt = LocalDateTime.now();
   }
 
   /**
