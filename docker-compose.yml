@@ -35,7 +35,7 @@ services:
     ports:
       - "8088:8080"
     volumes:
-      - uploads_data:/app/.docker/uploads
+      - ./.docker/uploads:/app/.docker/uploads
     networks:
       - projeto-java
     depends_on:
@@ -176,6 +176,5 @@ networks:
 
 volumes:
   maven-cache:
-  uploads_data:
   prometheus_data:
   grafana_data:
