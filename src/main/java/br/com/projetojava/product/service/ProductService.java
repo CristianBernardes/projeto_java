@@ -70,7 +70,7 @@ public class ProductService implements ProductServicePort {
   }
 
   /**
-   * Updates name, description and price of an existing product.
+   * Updates name, description, price and stock of an existing product.
    *
    * @param id product identifier
    * @param request new data
@@ -85,6 +85,7 @@ public class ProductService implements ProductServicePort {
     product.setName(request.name());
     product.setDescription(request.description());
     product.updatePrice(request.price());
+    product.updateStock(request.stock());
     return ProductResponse.from(productRepository.save(product));
   }
 

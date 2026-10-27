@@ -10,6 +10,7 @@ import java.math.BigDecimal;
  * @param name new name (required, max 255 characters)
  * @param description new description (optional)
  * @param price new price (required, positive)
+ * @param stock new stock quantity (required, non-negative)
  */
 @Schema(description = "Data for updating an existing product")
 public record UpdateProductRequest(
@@ -28,4 +29,11 @@ public record UpdateProductRequest(
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull(message = "Price is required.")
         @DecimalMin(value = "0.01", message = "Price must be positive.")
-        BigDecimal price) {}
+        BigDecimal price,
+    @Schema(
+            description = "New stock quantity",
+            example = "15",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull(message = "Stock is required.")
+        @Min(value = 0, message = "Stock cannot be negative.")
+        Integer stock) {}

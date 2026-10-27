@@ -85,6 +85,18 @@ public class Product {
   }
 
   /**
+   * Updates the stock to an absolute quantity.
+   *
+   * @param newStock new stock quantity (must be non-negative)
+   * @throws IllegalArgumentException if the quantity is invalid
+   */
+  public void updateStock(int newStock) {
+    validateStock(newStock);
+    this.stock = newStock;
+    this.updatedAt = LocalDateTime.now();
+  }
+
+  /**
    * Adds units to the stock.
    *
    * @param quantity quantity to add (must be positive)

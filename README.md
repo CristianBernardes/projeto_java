@@ -127,7 +127,7 @@ Use o `token` no header `Authorization: Bearer <token>` nas chamadas seguintes (
 | `GET` | `/api/v1/products` | Pública | Lista produtos ativos |
 | `GET` | `/api/v1/products/{id}` | Pública | Busca produto por ID |
 | `POST` | `/api/v1/products` | JWT | Cria produto |
-| `PUT` | `/api/v1/products/{id}` | JWT | Atualiza nome/descrição/preço |
+| `PUT` | `/api/v1/products/{id}` | JWT | Atualiza nome/descrição/preço/estoque |
 | `DELETE` | `/api/v1/products/{id}` | JWT | Desativa produto (soft delete) |
 
 **`POST /api/v1/products`:**

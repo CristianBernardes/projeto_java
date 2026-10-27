@@ -123,7 +123,7 @@ public class ProductController {
   }
 
   /**
-   * Updates name, description and price of an existing product.
+   * Updates name, description, price and stock of an existing product.
    *
    * @param id product identifier
    * @param request validated new data
@@ -131,7 +131,7 @@ public class ProductController {
    */
   @Operation(
       summary = "Update product",
-      description = "Updates name, description and price of an existing product.",
+      description = "Updates name, description, price and stock of an existing product.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
