@@ -403,3 +403,36 @@ Os testes unitários rodam dentro do container Maven (sem precisar do banco, Rab
 - `IdempotencyGuardTest`
 - `GlobalExceptionHandlerTest` (chain HTTP — todos os status 4xx/5xx)
 - `MessagingErrorHandlerTest` e os testes de cada elo da chain de mensageria
+
+---
+
+## Índice RAG (`.rag_db/`)
+
+A pasta [`.rag_db/`](.rag_db) contém o índice vetorial (banco [ChromaDB](https://www.trychroma.com/)) gerado a
+partir do código deste repositório pela ferramenta de RAG local
+([`~/Projetos/rag`](../rag/README.md), fora deste repositório). Ela é usada para fazer perguntas sobre o
+código e conversar com o projeto via modelos rodando localmente no [Ollama](https://ollama.com).
+
+Diferente do padrão para esse tipo de artefato, essa pasta é **versionada propositalmente** (não está no
+`.gitignore`), para que o índice já exista ao clonar o repositório, sem precisar reindexar do zero.
+
+- **Reindexar** (depois de mudanças relevantes no código), a partir da raiz deste projeto:
+
+  ```bash
+  ~/.venvs/rag/bin/python ~/Projetos/rag/rag.py index .
+  ```
+
+- **Perguntar** sobre o código:
+
+  ```bash
+  ~/.venvs/rag/bin/python ~/Projetos/rag/rag.py "como funciona a saga de reserva de estoque?"
+  ```
+
+- **Chat interativo** com histórico:
+
+  ```bash
+  ~/.venvs/rag/bin/python ~/Projetos/rag/chat.py
+  ```
+
+Veja o [README da ferramenta](../rag/README.md) para pré-requisitos (Python 3.12, Ollama com os modelos
+`nomic-embed-text` e `qwen2.5-coder:32b`) e detalhes de instalação.
