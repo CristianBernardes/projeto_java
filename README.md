@@ -2,7 +2,7 @@
 
 API REST construída com **Spring Boot 3**, **JPA/Hibernate**, **PostgreSQL**, **RabbitMQ** e **Kafka**, totalmente containerizada com **Docker** e **Docker Compose**, com observabilidade completa via **Prometheus** e **Grafana**.
 
-Projeto de estudo focado na stack da vaga: Java · Spring Boot · Hibernate · PostgreSQL · APIs REST · Mensageria assíncrona · Docker · Clean Code · SOLID · DDD · Design Patterns.
+Projeto de estudo: Java · Spring Boot · Hibernate · PostgreSQL · APIs REST · Mensageria assíncrona · Docker · Clean Code · SOLID · DDD · Design Patterns.
 
 ---
 
