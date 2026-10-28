@@ -11,19 +11,19 @@ import jakarta.validation.constraints.Size;
  * @param email user email address
  * @param password plain-text password (will be hashed before storage)
  */
-@Schema(description = "Data for user registration")
+@Schema(description = "Dados para registro de usuário")
 public record RegisterRequest(
     @Schema(
-            description = "User email address",
+            description = "Endereço de e-mail do usuário",
             example = "user@example.com",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "Email is required.")
-        @Email(message = "Email must be valid.")
+        @NotBlank(message = "O e-mail é obrigatório.")
+        @Email(message = "O e-mail deve ser válido.")
         String email,
     @Schema(
-            description = "Password (min 8 characters)",
+            description = "Senha (mínimo 8 caracteres)",
             example = "secret123",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "Password is required.")
-        @Size(min = 8, message = "Password must have at least 8 characters.")
+        @NotBlank(message = "A senha é obrigatória.")
+        @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres.")
         String password) {}

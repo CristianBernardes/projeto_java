@@ -38,7 +38,7 @@ class MessagingErrorHandlerTest {
   void resolve_shouldRouteBusinessErrorToDeadLetter() {
     MessageErrorResolution resolution =
         messagingErrorHandler.resolve(
-            new ResourceNotFoundException("Order not found. id=1"), CONTEXT);
+            new ResourceNotFoundException("Pedido não encontrado. id=1"), CONTEXT);
 
     assertThat(resolution.action()).isEqualTo(MessageErrorAction.REJECT_TO_DEAD_LETTER);
   }

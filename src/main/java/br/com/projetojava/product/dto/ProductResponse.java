@@ -17,18 +17,17 @@ import java.time.LocalDateTime;
  * @param createdAt creation date/time
  * @param updatedAt last update date/time
  */
-@Schema(description = "Product representation")
+@Schema(description = "Representação de um produto")
 public record ProductResponse(
-    @Schema(description = "Unique identifier", example = "1") Long id,
-    @Schema(description = "Product name", example = "Mechanical Keyboard") String name,
-    @Schema(description = "Product description", example = "Cherry MX Red switches, RGB")
+    @Schema(description = "Identificador único", example = "1") Long id,
+    @Schema(description = "Nome do produto", example = "Mechanical Keyboard") String name,
+    @Schema(description = "Descrição do produto", example = "Cherry MX Red switches, RGB")
         String description,
-    @Schema(description = "Unit price", example = "299.90") BigDecimal price,
-    @Schema(description = "Stock quantity", example = "10") int stock,
-    @Schema(description = "Indicates whether the product is active", example = "true")
-        boolean active,
-    @Schema(description = "Creation date and time") LocalDateTime createdAt,
-    @Schema(description = "Last update date and time") LocalDateTime updatedAt) {
+    @Schema(description = "Preço unitário", example = "299.90") BigDecimal price,
+    @Schema(description = "Quantidade em estoque", example = "10") int stock,
+    @Schema(description = "Indica se o produto está ativo", example = "true") boolean active,
+    @Schema(description = "Data e hora de criação") LocalDateTime createdAt,
+    @Schema(description = "Data e hora da última atualização") LocalDateTime updatedAt) {
 
   /**
    * Converts a {@link Product} entity to this response DTO.

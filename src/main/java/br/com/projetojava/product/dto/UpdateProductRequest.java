@@ -12,28 +12,28 @@ import java.math.BigDecimal;
  * @param price new price (required, positive)
  * @param stock new stock quantity (required, non-negative)
  */
-@Schema(description = "Data for updating an existing product")
+@Schema(description = "Dados para atualizar um produto existente")
 public record UpdateProductRequest(
     @Schema(
-            description = "New product name",
+            description = "Novo nome do produto",
             example = "Mechanical Keyboard Pro",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "Name is required.")
-        @Size(max = 255, message = "Name must have at most 255 characters.")
+        @NotBlank(message = "O nome é obrigatório.")
+        @Size(max = 255, message = "O nome deve ter no máximo 255 caracteres.")
         String name,
-    @Schema(description = "New product description", example = "Cherry MX Blue switches, RGB")
+    @Schema(description = "Nova descrição do produto", example = "Cherry MX Blue switches, RGB")
         String description,
     @Schema(
-            description = "New unit price",
+            description = "Novo preço unitário",
             example = "349.90",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull(message = "Price is required.")
-        @DecimalMin(value = "0.01", message = "Price must be positive.")
+        @NotNull(message = "O preço é obrigatório.")
+        @DecimalMin(value = "0.01", message = "O preço deve ser positivo.")
         BigDecimal price,
     @Schema(
-            description = "New stock quantity",
+            description = "Nova quantidade em estoque",
             example = "15",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull(message = "Stock is required.")
-        @Min(value = 0, message = "Stock cannot be negative.")
+        @NotNull(message = "O estoque é obrigatório.")
+        @Min(value = 0, message = "O estoque não pode ser negativo.")
         Integer stock) {}

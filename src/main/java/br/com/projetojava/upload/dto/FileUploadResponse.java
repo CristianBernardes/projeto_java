@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
  * @param sizeBytes file size in bytes
  * @param createdAt upload date/time
  */
-@Schema(description = "Uploaded file metadata")
+@Schema(description = "Metadados de arquivo enviado")
 public record FileUploadResponse(
-    @Schema(description = "Unique identifier", example = "1") Long id,
-    @Schema(description = "Original file name", example = "document.pdf") String originalName,
-    @Schema(description = "MIME type", example = "application/pdf") String contentType,
-    @Schema(description = "File size in bytes", example = "204800") long sizeBytes,
-    @Schema(description = "Upload date and time") LocalDateTime createdAt) {}
+    @Schema(description = "Identificador único", example = "1") Long id,
+    @Schema(description = "Nome original do arquivo", example = "document.pdf") String originalName,
+    @Schema(description = "Tipo MIME", example = "application/pdf") String contentType,
+    @Schema(description = "Tamanho do arquivo em bytes", example = "204800") long sizeBytes,
+    @Schema(description = "Data e hora do envio") LocalDateTime createdAt) {}

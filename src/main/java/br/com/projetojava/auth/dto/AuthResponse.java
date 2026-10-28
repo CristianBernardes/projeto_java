@@ -11,9 +11,10 @@ import java.time.LocalDateTime;
  * @param role user role
  * @param expiresAt token expiration date/time
  */
-@Schema(description = "Authentication response containing the JWT token")
+@Schema(description = "Resposta de autenticação contendo o token JWT")
 public record AuthResponse(
-    @Schema(description = "JWT bearer token") String token,
-    @Schema(description = "Authenticated user email", example = "user@example.com") String email,
-    @Schema(description = "User role", example = "USER") String role,
-    @Schema(description = "Token expiration date and time") LocalDateTime expiresAt) {}
+    @Schema(description = "Token JWT (bearer)") String token,
+    @Schema(description = "E-mail do usuário autenticado", example = "user@example.com")
+        String email,
+    @Schema(description = "Papel do usuário", example = "USER") String role,
+    @Schema(description = "Data e hora de expiração do token") LocalDateTime expiresAt) {}

@@ -49,13 +49,12 @@ public class StockReservationConsumer {
   public void onOrderCreated(
       OrderCreatedEvent event, @Header(AmqpHeaders.MESSAGE_ID) String messageId) {
     if (idempotencyGuard.isAlreadyProcessed(messageId)) {
-      log.info(
-          "Message id='{}' already processed; skipping (at-least-once redelivery).", messageId);
+      log.info("Mensagem id='{}' já processada; ignorando (reentrega at-least-once).", messageId);
       return;
     }
 
     try {
-      log.info("Reserving stock for order_id={}, message_id='{}'.", event.orderId(), messageId);
+      log.info("Reservando estoque para order_id={}, message_id='{}'.", event.orderId(), messageId);
       stockReservationService.reserveStock(event);
       idempotencyGuard.markProcessed(messageId);
     } catch (Exception ex) {
@@ -80,7 +79,7 @@ public class StockReservationConsumer {
     switch (resolution.action()) {
       case ACKNOWLEDGE -> {
         log.info(
-            "Message id='{}' resolved as ACKNOWLEDGE: {}. No further action.",
+            "Mensagem id='{}' resolvida como ACKNOWLEDGE: {}. Nenhuma ação adicional.",
             messageId,
             resolution.reason());
         idempotencyGuard.markProcessed(messageId);

@@ -62,11 +62,12 @@ public class StockReservationService implements StockReservationServicePort {
         orderRepository
             .findById(event.orderId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("Order not found. id=" + event.orderId()));
+                () ->
+                    new ResourceNotFoundException("Pedido não encontrado. id=" + event.orderId()));
 
     if (order.getStatus() != OrderStatus.PENDING) {
       log.info(
-          "Order id={} is no longer PENDING (status={}); skipping stock reservation.",
+          "Pedido id={} não está mais PENDING (status={}); pulando reserva de estoque.",
           order.getId(),
           order.getStatus());
       return;
@@ -82,7 +83,7 @@ public class StockReservationService implements StockReservationServicePort {
       orderRepository.save(order);
       outboxEventService.append(
           AGGREGATE_TYPE, order.getId(), "order.confirmed", new OrderConfirmedEvent(order.getId()));
-      log.info("Stock reserved and order confirmed. order_id={}.", order.getId());
+      log.info("Estoque reservado e pedido confirmado. order_id={}.", order.getId());
 
     } catch (InsufficientStockException e) {
       compensate(debited, event.items());
@@ -94,7 +95,7 @@ public class StockReservationService implements StockReservationServicePort {
           "order.stock-failed",
           new OrderStockFailedEvent(order.getId(), e.getMessage()));
       log.warn(
-          "Stock reservation failed; order compensated. order_id={}, reason='{}'.",
+          "Reserva de estoque falhou; pedido compensado. order_id={}, motivo='{}'.",
           order.getId(),
           e.getMessage());
     }
@@ -107,11 +108,13 @@ public class StockReservationService implements StockReservationServicePort {
         productRepository
             .findByIdForUpdate(item.productId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("Product not found. id=" + item.productId()));
+                () ->
+                    new ResourceNotFoundException(
+                        "Produto não encontrado. id=" + item.productId()));
 
     if (product.getStock() < item.quantity()) {
       throw new InsufficientStockException(
-          "Insufficient stock for product id=%d. Available: %d, requested: %d."
+          "Estoque insuficiente para o produto id=%d. Disponível: %d, solicitado: %d."
               .formatted(product.getId(), product.getStock(), item.quantity()));
     }
 
@@ -139,7 +142,8 @@ public class StockReservationService implements StockReservationServicePort {
       if (quantity > 0) {
         product.addStock(quantity);
         productRepository.save(product);
-        log.info("Compensated stock for product id={}, quantity={}.", product.getId(), quantity);
+        log.info(
+            "Estoque compensado para o produto id={}, quantidade={}.", product.getId(), quantity);
       }
     }
   }

@@ -43,7 +43,7 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
     ErrorResponse body =
         ErrorResponse.of(
             HttpStatus.FORBIDDEN,
-            "You do not have permission to access this resource.",
+            "Você não tem permissão para acessar este recurso.",
             request.getRequestURI());
 
     response.setStatus(HttpStatus.FORBIDDEN.value());

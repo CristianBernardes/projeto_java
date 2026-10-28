@@ -55,7 +55,8 @@ class SingleOutboxEventPublisher implements SingleOutboxEventPublisherPort {
       outboxEventRepository.save(event);
     } catch (Exception e) {
       log.error(
-          "Failed to publish outbox event id={}, type='{}'. Will retry on next poll.",
+          "Falha ao publicar evento do outbox id={}, type='{}'. Haverá nova tentativa no próximo"
+              + " poll.",
           event.getId(),
           event.getEventType(),
           e);

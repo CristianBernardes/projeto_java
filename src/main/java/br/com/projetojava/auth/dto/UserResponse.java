@@ -13,14 +13,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param avatarDownloadUrl relative URL to download the avatar file, or {@code null} if the user
  *     has no avatar set
  */
-@Schema(description = "Authenticated user's profile")
+@Schema(description = "Perfil do usuário autenticado")
 public record UserResponse(
-    @Schema(description = "Unique identifier", example = "1") Long id,
-    @Schema(description = "User email", example = "user@example.com") String email,
-    @Schema(description = "User role", example = "USER") String role,
-    @Schema(description = "Avatar file identifier", example = "3", nullable = true) Long avatarId,
+    @Schema(description = "Identificador único", example = "1") Long id,
+    @Schema(description = "E-mail do usuário", example = "user@example.com") String email,
+    @Schema(description = "Papel do usuário", example = "USER") String role,
+    @Schema(description = "Identificador do arquivo de avatar", example = "3", nullable = true)
+        Long avatarId,
     @Schema(
-            description = "Relative URL to download the avatar",
+            description = "URL relativa para download do avatar",
             example = "/api/v1/files/3",
             nullable = true)
         String avatarDownloadUrl) {}

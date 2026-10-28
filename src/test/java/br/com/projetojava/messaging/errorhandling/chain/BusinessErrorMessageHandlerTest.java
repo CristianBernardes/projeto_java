@@ -19,12 +19,12 @@ class BusinessErrorMessageHandlerTest {
   @Test
   @DisplayName("handle — should resolve ResourceNotFoundException to REJECT_TO_DEAD_LETTER")
   void handle_shouldRejectToDeadLetterForResourceNotFound() {
-    ResourceNotFoundException ex = new ResourceNotFoundException("Order not found. id=1");
+    ResourceNotFoundException ex = new ResourceNotFoundException("Pedido não encontrado. id=1");
 
     MessageErrorResolution resolution = handler.handle(ex, CONTEXT).orElseThrow();
 
     assertThat(resolution.action()).isEqualTo(MessageErrorAction.REJECT_TO_DEAD_LETTER);
-    assertThat(resolution.reason()).contains("Order not found");
+    assertThat(resolution.reason()).contains("Pedido não encontrado");
   }
 
   @Test

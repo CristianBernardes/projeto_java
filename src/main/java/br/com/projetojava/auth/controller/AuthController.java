@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>Provides user registration and login, returning JWT tokens on success.
  */
-@Tag(name = "Authentication", description = "User registration and login")
+@Tag(name = "Autenticação", description = "Registro e login de usuários")
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -35,23 +35,23 @@ public class AuthController {
    * @return {@code 200 OK} with JWT token and user info
    */
   @Operation(
-      summary = "Register",
-      description = "Creates a new user account and returns a JWT token.",
+      summary = "Registrar",
+      description = "Cria uma nova conta de usuário e retorna um token JWT.",
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "User registered successfully",
+            description = "Usuário registrado com sucesso",
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = AuthResponse.class))),
         @ApiResponse(
             responseCode = "409",
-            description = "Email already registered",
+            description = "E-mail já registrado",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
         @ApiResponse(
             responseCode = "422",
-            description = "Invalid input data",
+            description = "Dados de entrada inválidos",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping("/register")
@@ -67,18 +67,18 @@ public class AuthController {
    */
   @Operation(
       summary = "Login",
-      description = "Authenticates with email and password, returning a JWT token.",
+      description = "Autentica com e-mail e senha, retornando um token JWT.",
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "Authentication successful",
+            description = "Autenticação realizada com sucesso",
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = AuthResponse.class))),
         @ApiResponse(
             responseCode = "401",
-            description = "Invalid credentials",
+            description = "Credenciais inválidas",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping("/login")

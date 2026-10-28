@@ -47,7 +47,7 @@ public class OrderItem {
    */
   static OrderItem create(Product product, int quantity) {
     if (quantity <= 0) {
-      throw new IllegalArgumentException("Order item quantity must be positive.");
+      throw new IllegalArgumentException("A quantidade do item do pedido deve ser positiva.");
     }
     OrderItem item = new OrderItem();
     item.product = product;

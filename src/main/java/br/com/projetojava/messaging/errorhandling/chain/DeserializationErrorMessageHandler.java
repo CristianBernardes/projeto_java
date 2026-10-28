@@ -38,12 +38,12 @@ public class DeserializationErrorMessageHandler extends AbstractMessageErrorHand
   @Override
   protected MessageErrorResolution process(Exception ex, MessageErrorContext context) {
     log.error(
-        "Poison message (unparseable payload) for message_id='{}' from source='{}'. Routing to"
-            + " dead letter without retry.",
+        "Mensagem envenenada (payload não interpretável) para message_id='{}' de source='{}'."
+            + " Enviando para dead letter sem retry.",
         context.messageId(),
         context.source(),
         ex);
     return MessageErrorResolution.rejectToDeadLetter(
-        "Malformed message payload: " + ex.getMessage());
+        "Payload da mensagem malformado: " + ex.getMessage());
   }
 }

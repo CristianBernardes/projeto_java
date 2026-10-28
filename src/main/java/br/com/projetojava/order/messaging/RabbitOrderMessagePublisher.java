@@ -39,7 +39,7 @@ public class RabbitOrderMessagePublisher implements OrderMessagePublisherPort {
   @Override
   public void publishOrderCreated(String messageId, Object payload) {
     log.info(
-        "Publishing to RabbitMQ exchange='{}', routing_key='{}', message_id='{}'.",
+        "Publicando no RabbitMQ exchange='{}', routing_key='{}', message_id='{}'.",
         orderExchange,
         orderCreatedRoutingKey,
         messageId);

@@ -40,7 +40,7 @@ public class TransientErrorMessageHandler extends AbstractMessageErrorHandler {
   @Override
   protected MessageErrorResolution process(Exception ex, MessageErrorContext context) {
     log.warn(
-        "Transient infrastructure error for message_id='{}' from source='{}': {}. Will retry.",
+        "Erro transitório de infraestrutura para message_id='{}' de source='{}': {}. Haverá retry.",
         context.messageId(),
         context.source(),
         ex.getMessage());

@@ -97,7 +97,7 @@ class StockReservationServiceTest {
     stockReservationService.reserveStock(event);
 
     assertThat(order.getStatus()).isEqualTo(OrderStatus.FAILED);
-    assertThat(order.getFailureReason()).contains("Insufficient stock");
+    assertThat(order.getFailureReason()).contains("Estoque insuficiente");
     // Keyboard was debited (10 -> 8) then compensated back (8 -> 10): no net change.
     assertThat(keyboard.getStock()).isEqualTo(10);
     // Mouse never had enough stock to begin with (1 < 5): unchanged.

@@ -49,7 +49,8 @@ public class IdempotencyGuard implements IdempotencyGuardPort {
       processedMessageRepository.save(ProcessedMessage.create(messageId));
     } catch (DataIntegrityViolationException e) {
       log.warn(
-          "Message id='{}' was already marked as processed by a concurrent consumer.", messageId);
+          "Mensagem id='{}' já havia sido marcada como processada por um consumidor concorrente.",
+          messageId);
     }
   }
 }

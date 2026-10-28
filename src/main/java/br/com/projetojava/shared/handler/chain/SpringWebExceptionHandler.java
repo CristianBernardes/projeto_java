@@ -53,30 +53,30 @@ public class SpringWebExceptionHandler extends AbstractExceptionHandler {
 
     if (ex instanceof HttpMessageNotReadableException) {
       status = HttpStatus.BAD_REQUEST;
-      message = "Request body is missing or malformed.";
+      message = "O corpo da requisição está ausente ou malformado.";
 
     } else if (ex instanceof MissingServletRequestParameterException missing) {
       status = HttpStatus.BAD_REQUEST;
-      message = "Required parameter missing: '%s'.".formatted(missing.getParameterName());
+      message = "Parâmetro obrigatório ausente: '%s'.".formatted(missing.getParameterName());
 
     } else if (ex instanceof MethodArgumentTypeMismatchException mismatch) {
       status = HttpStatus.BAD_REQUEST;
       message =
-          "Invalid value for parameter '%s': '%s'."
+          "Valor inválido para o parâmetro '%s': '%s'."
               .formatted(mismatch.getName(), mismatch.getValue());
 
     } else if (ex instanceof NoHandlerFoundException) {
       status = HttpStatus.NOT_FOUND;
       message =
-          "Resource not found: %s %s.".formatted(request.getMethod(), request.getRequestURI());
+          "Recurso não encontrado: %s %s.".formatted(request.getMethod(), request.getRequestURI());
 
     } else if (ex instanceof HttpRequestMethodNotSupportedException notSupported) {
       status = HttpStatus.METHOD_NOT_ALLOWED;
-      message = "Method '%s' not allowed for this endpoint.".formatted(notSupported.getMethod());
+      message = "Método '%s' não permitido para este endpoint.".formatted(notSupported.getMethod());
 
     } else {
       status = HttpStatus.UNSUPPORTED_MEDIA_TYPE;
-      message = "Content-Type not supported.";
+      message = "Content-Type não suportado.";
     }
 
     return ErrorResponse.of(status, message, request.getRequestURI());

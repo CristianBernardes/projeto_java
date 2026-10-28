@@ -53,9 +53,9 @@ public class FileUploadService implements FileUploadServicePort {
   void initDirectory() {
     try {
       Files.createDirectories(Paths.get(uploadDirectory));
-      log.info("Upload directory ready: {}", uploadDirectory);
+      log.info("Diretório de upload pronto: {}", uploadDirectory);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to create upload directory: " + uploadDirectory, e);
+      throw new RuntimeException("Falha ao criar o diretório de upload: " + uploadDirectory, e);
     }
   }
 
@@ -81,7 +81,7 @@ public class FileUploadService implements FileUploadServicePort {
     try {
       Files.copy(file.getInputStream(), destination);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to store file: " + originalName, e);
+      throw new RuntimeException("Falha ao armazenar o arquivo: " + originalName, e);
     }
 
     FileUpload upload =
@@ -95,7 +95,7 @@ public class FileUploadService implements FileUploadServicePort {
             userId);
 
     FileUpload saved = fileUploadRepository.save(upload);
-    log.info("File stored: id={}, name='{}'.", saved.getId(), storedName);
+    log.info("Arquivo armazenado: id={}, name='{}'.", saved.getId(), storedName);
 
     return new FileUploadResponse(
         saved.getId(),
@@ -123,7 +123,7 @@ public class FileUploadService implements FileUploadServicePort {
   @Transactional
   public List<FileUploadResponse> storeAll(List<MultipartFile> files, Long productId, Long userId) {
     if (files == null || files.isEmpty()) {
-      throw new BadRequestException("At least one file must be provided.");
+      throw new BadRequestException("É necessário informar ao menos um arquivo.");
     }
     files.forEach(this::validateFile);
 
@@ -143,17 +143,17 @@ public class FileUploadService implements FileUploadServicePort {
     FileUpload upload =
         fileUploadRepository
             .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("File not found. id=" + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Arquivo não encontrado. id=" + id));
 
     try {
       Path filePath = Paths.get(upload.getPath());
       Resource resource = new UrlResource(filePath.toUri());
       if (!resource.exists() || !resource.isReadable()) {
-        throw new ResourceNotFoundException("File not readable. id=" + id);
+        throw new ResourceNotFoundException("Arquivo não pode ser lido. id=" + id);
       }
       return resource;
     } catch (IOException e) {
-      throw new RuntimeException("Failed to load file. id=" + id, e);
+      throw new RuntimeException("Falha ao carregar o arquivo. id=" + id, e);
     }
   }
 
@@ -161,16 +161,17 @@ public class FileUploadService implements FileUploadServicePort {
 
   private void validateFile(MultipartFile file) {
     if (file.isEmpty()) {
-      throw new BadRequestException("File must not be empty.");
+      throw new BadRequestException("O arquivo não pode estar vazio.");
     }
     if (file.getSize() > maxSizeBytes) {
       throw new BadRequestException(
-          "File exceeds maximum allowed size of %d bytes.".formatted(maxSizeBytes));
+          "O arquivo excede o tamanho máximo permitido de %d bytes.".formatted(maxSizeBytes));
     }
     String contentType = file.getContentType();
     if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
       throw new BadRequestException(
-          "File type not allowed: '%s'. Allowed: %s.".formatted(contentType, ALLOWED_TYPES));
+          "Tipo de arquivo não permitido: '%s'. Permitidos: %s."
+              .formatted(contentType, ALLOWED_TYPES));
     }
   }
 

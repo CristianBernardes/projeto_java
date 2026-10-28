@@ -26,7 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * <p>All endpoints require a valid JWT token.
  */
-@Tag(name = "File Uploads", description = "File upload and download management")
+@Tag(name = "Upload de Arquivos", description = "Gerenciamento de envio e download de arquivos")
 @RestController
 @RequestMapping("/api/v1/files")
 @RequiredArgsConstructor
@@ -49,17 +49,17 @@ public class FileUploadController {
    * @return {@code 200 OK} with the metadata of every uploaded file
    */
   @Operation(
-      summary = "Upload files",
+      summary = "Enviar arquivos",
       description =
-          "Uploads one or more files (JPEG, PNG or PDF, max 10MB each). Requires authentication."
-              + " Optionally associates the files with a product via the productId query"
-              + " parameter — send multiple files at once to upload several photos for the same"
-              + " product.",
+          "Envia um ou mais arquivos (JPEG, PNG ou PDF, máx. 10MB cada). Requer autenticação."
+              + " Opcionalmente associa os arquivos a um produto via o parâmetro de consulta"
+              + " productId — envie múltiplos arquivos de uma vez para enviar várias fotos do"
+              + " mesmo produto.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "Files uploaded successfully",
+            description = "Arquivos enviados com sucesso",
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -67,11 +67,11 @@ public class FileUploadController {
                         @ArraySchema(schema = @Schema(implementation = FileUploadResponse.class)))),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid file (type not allowed or size exceeded)",
+            description = "Arquivo inválido (tipo não permitido ou tamanho excedido)",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
         @ApiResponse(
             responseCode = "401",
-            description = "Authentication required",
+            description = "Autenticação necessária",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -90,23 +90,24 @@ public class FileUploadController {
    * @return {@code 200 OK} with the file content as an attachment
    */
   @Operation(
-      summary = "Download file",
-      description = "Downloads a file by its ID. Requires authentication.",
+      summary = "Download de arquivo",
+      description = "Faz o download de um arquivo pelo seu ID. Requer autenticação.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
-        @ApiResponse(responseCode = "200", description = "File returned successfully"),
+        @ApiResponse(responseCode = "200", description = "Arquivo retornado com sucesso"),
         @ApiResponse(
             responseCode = "404",
-            description = "File not found",
+            description = "Arquivo não encontrado",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
         @ApiResponse(
             responseCode = "401",
-            description = "Authentication required",
+            description = "Autenticação necessária",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @GetMapping("/{id}")
   public ResponseEntity<Resource> download(
-      @Parameter(description = "File identifier", example = "1", required = true) @PathVariable
+      @Parameter(description = "Identificador do arquivo", example = "1", required = true)
+          @PathVariable
           Long id) {
     Resource resource = fileUploadService.load(id);
     return ResponseEntity.ok()

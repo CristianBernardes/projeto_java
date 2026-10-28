@@ -13,12 +13,12 @@ import java.math.BigDecimal;
  * @param unitPrice unit price at the time of purchase
  * @param subtotal {@code unitPrice * quantity}
  */
-@Schema(description = "A line item within an order response")
+@Schema(description = "Um item dentro de uma resposta de pedido")
 public record OrderItemResponse(
-    @Schema(description = "Product identifier", example = "1") Long productId,
-    @Schema(description = "Product name", example = "Mechanical Keyboard") String productName,
-    @Schema(description = "Quantity purchased", example = "2") int quantity,
-    @Schema(description = "Unit price at the time of purchase", example = "299.90")
+    @Schema(description = "Identificador do produto", example = "1") Long productId,
+    @Schema(description = "Nome do produto", example = "Mechanical Keyboard") String productName,
+    @Schema(description = "Quantidade comprada", example = "2") int quantity,
+    @Schema(description = "Preço unitário no momento da compra", example = "299.90")
         BigDecimal unitPrice,
     @Schema(description = "Subtotal (unitPrice * quantity)", example = "599.80")
         BigDecimal subtotal) {

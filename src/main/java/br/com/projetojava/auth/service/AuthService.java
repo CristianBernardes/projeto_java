@@ -39,10 +39,10 @@ public class AuthService implements AuthServicePort {
   @Override
   @Transactional
   public AuthResponse register(RegisterRequest request) {
-    log.info("Registering user email='{}'.", request.email());
+    log.info("Registrando usuário email='{}'.", request.email());
 
     if (userRepository.existsByEmail(request.email())) {
-      throw new ConflictException("Email already registered: " + request.email());
+      throw new ConflictException("E-mail já cadastrado: " + request.email());
     }
 
     String hash = passwordEncoder.encode(request.password());
@@ -64,15 +64,15 @@ public class AuthService implements AuthServicePort {
   @Override
   @Transactional(readOnly = true)
   public AuthResponse login(LoginRequest request) {
-    log.info("Login attempt for email='{}'.", request.email());
+    log.info("Tentativa de login para email='{}'.", request.email());
 
     User user =
         userRepository
             .findByEmail(request.email())
-            .orElseThrow(() -> new UnauthorizedException("Invalid credentials."));
+            .orElseThrow(() -> new UnauthorizedException("Credenciais inválidas."));
 
     if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-      throw new UnauthorizedException("Invalid credentials.");
+      throw new UnauthorizedException("Credenciais inválidas.");
     }
 
     String token = jwtService.generateToken(user.getEmail(), user.getRole());

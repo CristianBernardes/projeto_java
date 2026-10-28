@@ -44,7 +44,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
     ErrorResponse body =
         ErrorResponse.of(
             HttpStatus.UNAUTHORIZED,
-            "Authentication is required to access this resource.",
+            "A autenticação é necessária para acessar este recurso.",
             request.getRequestURI());
 
     response.setStatus(HttpStatus.UNAUTHORIZED.value());

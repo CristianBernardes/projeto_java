@@ -22,15 +22,16 @@ import org.springframework.http.HttpStatus;
  * @param path request path that generated the error
  * @param errors list of detailed field errors (optional, present in {@code 422})
  */
-@Schema(description = "Standardized API error response")
+@Schema(description = "Resposta padronizada de erro da API")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record ErrorResponse(
-    @Schema(description = "Error date and time") LocalDateTime timestamp,
-    @Schema(description = "HTTP status code", example = "404") int status,
-    @Schema(description = "HTTP status name", example = "Not Found") String error,
-    @Schema(description = "Error description", example = "Product not found. id=42") String message,
-    @Schema(description = "Request path", example = "/api/v1/products/42") String path,
-    @Schema(description = "Field errors (present only in 422)") List<String> errors) {
+    @Schema(description = "Data e hora do erro") LocalDateTime timestamp,
+    @Schema(description = "Código de status HTTP", example = "404") int status,
+    @Schema(description = "Nome do status HTTP", example = "Not Found") String error,
+    @Schema(description = "Descrição do erro", example = "Produto não encontrado. id=42")
+        String message,
+    @Schema(description = "Caminho da requisição", example = "/api/v1/products/42") String path,
+    @Schema(description = "Erros de campo (presente apenas em 422)") List<String> errors) {
 
   /**
    * Creates a simple error response without a field error list.

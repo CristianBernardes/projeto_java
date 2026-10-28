@@ -32,13 +32,14 @@ public class AuthenticatedUserResolver {
    */
   public Long resolveUserId(Authentication authentication) {
     if (authentication == null || !authentication.isAuthenticated()) {
-      throw new UnauthorizedException("Authentication required.");
+      throw new UnauthorizedException("Autenticação necessária.");
     }
     String email = (String) authentication.getPrincipal();
     User user =
         userRepository
             .findByEmail(email)
-            .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found."));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Usuário autenticado não encontrado."));
     return user.getId();
   }
 }

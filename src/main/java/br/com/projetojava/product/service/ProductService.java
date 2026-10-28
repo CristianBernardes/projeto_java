@@ -36,7 +36,7 @@ public class ProductService implements ProductServicePort {
   @Override
   @Transactional(readOnly = true)
   public List<ProductResponse> listActive() {
-    log.info("Listing active products.");
+    log.info("Listando produtos ativos.");
     return productRepository.findAllByActive(true).stream().map(ProductResponse::from).toList();
   }
 
@@ -50,7 +50,7 @@ public class ProductService implements ProductServicePort {
   @Override
   @Transactional(readOnly = true)
   public ProductResponse findById(Long id) {
-    log.info("Finding product id={}.", id);
+    log.info("Buscando produto id={}.", id);
     return ProductResponse.from(findEntity(id));
   }
 
@@ -63,7 +63,7 @@ public class ProductService implements ProductServicePort {
   @Override
   @Transactional
   public ProductResponse create(CreateProductRequest request) {
-    log.info("Creating product name='{}'.", request.name());
+    log.info("Criando produto name='{}'.", request.name());
     Product product =
         Product.create(request.name(), request.description(), request.price(), request.stock());
     return ProductResponse.from(productRepository.save(product));
@@ -80,7 +80,7 @@ public class ProductService implements ProductServicePort {
   @Override
   @Transactional
   public ProductResponse update(Long id, UpdateProductRequest request) {
-    log.info("Updating product id={}.", id);
+    log.info("Atualizando produto id={}.", id);
     Product product = findEntity(id);
     product.setName(request.name());
     product.setDescription(request.description());
@@ -98,7 +98,7 @@ public class ProductService implements ProductServicePort {
   @Override
   @Transactional
   public void deactivate(Long id) {
-    log.info("Deactivating product id={}.", id);
+    log.info("Desativando produto id={}.", id);
     Product product = findEntity(id);
     product.deactivate();
     productRepository.save(product);
@@ -109,6 +109,6 @@ public class ProductService implements ProductServicePort {
   private Product findEntity(Long id) {
     return productRepository
         .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Product not found. id=" + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. id=" + id));
   }
 }

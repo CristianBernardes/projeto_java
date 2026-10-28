@@ -41,6 +41,6 @@ public class ValidationExceptionHandler extends AbstractExceptionHandler {
             .toList();
 
     return ErrorResponse.withErrors(
-        HttpStatus.UNPROCESSABLE_ENTITY, "Invalid data.", errors, request.getRequestURI());
+        HttpStatus.UNPROCESSABLE_ENTITY, "Dados inválidos.", errors, request.getRequestURI());
   }
 }

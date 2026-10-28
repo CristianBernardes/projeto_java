@@ -38,7 +38,7 @@ class OrderTest {
   void create_shouldThrowWhenNoItems() {
     assertThatThrownBy(() -> Order.create(USER, ADDRESS, List.of()))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("at least one item");
+        .hasMessageContaining("ao menos um item");
   }
 
   @Test
@@ -65,10 +65,10 @@ class OrderTest {
   void fail_shouldTransitionToFailedWithReason() {
     Order order = createPendingOrder();
 
-    order.fail("Insufficient stock.");
+    order.fail("Estoque insuficiente.");
 
     assertThat(order.getStatus()).isEqualTo(OrderStatus.FAILED);
-    assertThat(order.getFailureReason()).isEqualTo("Insufficient stock.");
+    assertThat(order.getFailureReason()).isEqualTo("Estoque insuficiente.");
   }
 
   @Test

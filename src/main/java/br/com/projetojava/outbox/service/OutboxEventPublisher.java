@@ -50,7 +50,7 @@ public class OutboxEventPublisher {
       return;
     }
 
-    log.info("Publishing {} pending outbox event(s).", pending.size());
+    log.info("Publicando {} evento(s) pendente(s) do outbox.", pending.size());
     pending.forEach(singleOutboxEventPublisher::publish);
   }
 }

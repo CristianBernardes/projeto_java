@@ -13,27 +13,27 @@ import jakarta.validation.constraints.Size;
  * @param state two-letter state code (required, e.g., "SP")
  * @param zip postal code (required)
  */
-@Schema(description = "Delivery address for the order")
+@Schema(description = "Endereço de entrega do pedido")
 public record DeliveryAddressRequest(
     @Schema(
-            description = "Street name and number",
+            description = "Nome da rua e número",
             example = "Rua das Flores, 123",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "Street is required.")
+        @NotBlank(message = "A rua é obrigatória.")
         String street,
     @Schema(
-            description = "City",
+            description = "Cidade",
             example = "São Paulo",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "City is required.")
+        @NotBlank(message = "A cidade é obrigatória.")
         String city,
-    @Schema(description = "State code", example = "SP", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull(message = "State is required.")
-        @Size(min = 2, max = 2, message = "State must be a 2-letter code.")
-        String state,
     @Schema(
-            description = "Postal code",
-            example = "01310-100",
+            description = "Código do estado",
+            example = "SP",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "Zip code is required.")
+        @NotNull(message = "O estado é obrigatório.")
+        @Size(min = 2, max = 2, message = "O estado deve ter um código de 2 letras.")
+        String state,
+    @Schema(description = "CEP", example = "01310-100", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "O CEP é obrigatório.")
         String zip) {}

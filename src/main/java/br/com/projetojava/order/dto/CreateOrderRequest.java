@@ -16,11 +16,11 @@ import java.util.List;
  * @param deliveryAddress where the order should be delivered (required)
  * @param items line items to purchase (required, at least one)
  */
-@Schema(description = "Data for creating a new order")
+@Schema(description = "Dados para criar um novo pedido")
 public record CreateOrderRequest(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) @NotNull @Valid
         DeliveryAddressRequest deliveryAddress,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotEmpty(message = "Order must contain at least one item.")
+        @NotEmpty(message = "O pedido deve conter ao menos um item.")
         @Valid
         List<OrderItemRequestDto> items) {}

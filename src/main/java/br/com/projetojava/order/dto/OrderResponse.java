@@ -19,17 +19,17 @@ import java.util.List;
  * @param createdAt creation date/time
  * @param updatedAt last update date/time
  */
-@Schema(description = "Order representation")
+@Schema(description = "Representação de um pedido")
 public record OrderResponse(
-    @Schema(description = "Unique identifier", example = "1") Long id,
-    @Schema(description = "Customer identifier", example = "2") Long userId,
-    @Schema(description = "Current order status") OrderStatus status,
-    @Schema(description = "Total order amount", example = "599.80") BigDecimal totalAmount,
-    @Schema(description = "Line items") List<OrderItemResponse> items,
-    @Schema(description = "Failure reason, present only when status is FAILED")
+    @Schema(description = "Identificador único", example = "1") Long id,
+    @Schema(description = "Identificador do cliente", example = "2") Long userId,
+    @Schema(description = "Status atual do pedido") OrderStatus status,
+    @Schema(description = "Valor total do pedido", example = "599.80") BigDecimal totalAmount,
+    @Schema(description = "Itens do pedido") List<OrderItemResponse> items,
+    @Schema(description = "Motivo da falha, presente apenas quando o status é FAILED")
         String failureReason,
-    @Schema(description = "Creation date and time") LocalDateTime createdAt,
-    @Schema(description = "Last update date and time") LocalDateTime updatedAt) {
+    @Schema(description = "Data e hora de criação") LocalDateTime createdAt,
+    @Schema(description = "Data e hora da última atualização") LocalDateTime updatedAt) {
 
   /**
    * Converts an {@link Order} entity to this response DTO.

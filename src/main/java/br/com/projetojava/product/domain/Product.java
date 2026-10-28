@@ -104,7 +104,7 @@ public class Product {
    */
   public void addStock(int quantity) {
     if (quantity <= 0) {
-      throw new IllegalArgumentException("Quantity to add must be positive.");
+      throw new IllegalArgumentException("A quantidade a adicionar deve ser positiva.");
     }
     this.stock += quantity;
     this.updatedAt = LocalDateTime.now();
@@ -118,11 +118,11 @@ public class Product {
    */
   public void removeStock(int quantity) {
     if (quantity <= 0) {
-      throw new IllegalArgumentException("Quantity to remove must be positive.");
+      throw new IllegalArgumentException("A quantidade a remover deve ser positiva.");
     }
     if (quantity > this.stock) {
       throw new IllegalArgumentException(
-          "Insufficient stock. Available: %d, requested: %d.".formatted(this.stock, quantity));
+          "Estoque insuficiente. Disponível: %d, solicitado: %d.".formatted(this.stock, quantity));
     }
     this.stock -= quantity;
     this.updatedAt = LocalDateTime.now();
@@ -144,13 +144,13 @@ public class Product {
 
   private static void validatePrice(BigDecimal price) {
     if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new IllegalArgumentException("Price must be positive.");
+      throw new IllegalArgumentException("O preço deve ser positivo.");
     }
   }
 
   private static void validateStock(int stock) {
     if (stock < 0) {
-      throw new IllegalArgumentException("Stock cannot be negative.");
+      throw new IllegalArgumentException("O estoque não pode ser negativo.");
     }
   }
 

@@ -37,7 +37,8 @@ public class BusinessErrorMessageHandler extends AbstractMessageErrorHandler {
   @Override
   protected MessageErrorResolution process(Exception ex, MessageErrorContext context) {
     log.warn(
-        "Permanent business error for message_id='{}' from source='{}': {}. Routing to dead letter.",
+        "Erro de negócio permanente para message_id='{}' de source='{}': {}. Enviando para dead"
+            + " letter.",
         context.messageId(),
         context.source(),
         ex.getMessage());

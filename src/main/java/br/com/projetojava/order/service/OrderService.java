@@ -54,12 +54,13 @@ public class OrderService implements OrderServicePort {
   @Override
   @Transactional
   public OrderResponse create(CreateOrderRequest request, Long userId) {
-    log.info("Creating order for user_id={}.", userId);
+    log.info("Criando pedido para user_id={}.", userId);
 
     User user =
         userRepository
             .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found. id=" + userId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Usuário não encontrado. id=" + userId));
 
     List<Order.OrderItemRequest> itemRequests = resolveItems(request.items());
     DeliveryAddress deliveryAddress = toDeliveryAddress(request);
@@ -69,7 +70,7 @@ public class OrderService implements OrderServicePort {
 
     outboxEventService.append(AGGREGATE_TYPE, saved.getId(), EVENT_TYPE_CREATED, toEvent(saved));
 
-    log.info("Order created id={}, status={}.", saved.getId(), saved.getStatus());
+    log.info("Pedido criado id={}, status={}.", saved.getId(), saved.getStatus());
     return OrderResponse.from(saved);
   }
 
@@ -83,7 +84,7 @@ public class OrderService implements OrderServicePort {
   @Override
   @Transactional(readOnly = true)
   public OrderResponse findById(Long id) {
-    log.info("Finding order id={}.", id);
+    log.info("Buscando pedido id={}.", id);
     return OrderResponse.from(findEntity(id));
   }
 
@@ -98,7 +99,8 @@ public class OrderService implements OrderServicePort {
         productRepository
             .findById(dto.productId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("Product not found. id=" + dto.productId()));
+                () ->
+                    new ResourceNotFoundException("Produto não encontrado. id=" + dto.productId()));
     return new Order.OrderItemRequest(product, dto.quantity());
   }
 
@@ -126,6 +128,6 @@ public class OrderService implements OrderServicePort {
   private Order findEntity(Long id) {
     return orderRepository
         .findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Order not found. id=" + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado. id=" + id));
   }
 }

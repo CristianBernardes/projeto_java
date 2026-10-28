@@ -55,7 +55,7 @@ public class UserProfileService implements UserProfileServicePort {
     user.updateAvatar(upload.id());
     userRepository.save(user);
 
-    log.info("Avatar updated for user id={}, file_upload_id={}.", userId, upload.id());
+    log.info("Avatar atualizado para o usuário id={}, file_upload_id={}.", userId, upload.id());
     return toResponse(user);
   }
 
@@ -64,7 +64,7 @@ public class UserProfileService implements UserProfileServicePort {
   private User findUser(Long userId) {
     return userRepository
         .findById(userId)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found. id=" + userId));
+        .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. id=" + userId));
   }
 
   private UserResponse toResponse(User user) {

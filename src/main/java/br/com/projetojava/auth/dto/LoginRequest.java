@@ -10,18 +10,18 @@ import jakarta.validation.constraints.NotBlank;
  * @param email user email address
  * @param password plain-text password
  */
-@Schema(description = "Credentials for authentication")
+@Schema(description = "Credenciais para autenticação")
 public record LoginRequest(
     @Schema(
-            description = "User email address",
+            description = "Endereço de e-mail do usuário",
             example = "user@example.com",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "Email is required.")
-        @Email(message = "Email must be valid.")
+        @NotBlank(message = "O e-mail é obrigatório.")
+        @Email(message = "O e-mail deve ser válido.")
         String email,
     @Schema(
-            description = "User password",
+            description = "Senha do usuário",
             example = "secret123",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "Password is required.")
+        @NotBlank(message = "A senha é obrigatória.")
         String password) {}

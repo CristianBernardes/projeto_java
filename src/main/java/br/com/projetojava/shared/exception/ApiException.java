@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
  * <p>Example usage:
  *
  * <pre>{@code
- * throw new ResourceNotFoundException("Product not found. id=42");
+ * throw new ResourceNotFoundException("Produto não encontrado. id=42");
  * }</pre>
  */
 public abstract class ApiException extends RuntimeException {

@@ -33,7 +33,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  * via RabbitMQ (see the {@code order.messaging} package); clients should poll {@code GET /{id}} to
  * observe the final {@code CONFIRMED} or {@code FAILED} status.
  */
-@Tag(name = "Orders", description = "Asynchronous order creation with background stock reservation")
+@Tag(
+    name = "Pedidos",
+    description = "Criação assíncrona de pedidos com reserva de estoque em segundo plano")
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
@@ -54,31 +56,31 @@ public class OrderController {
    *     header pointing to the status endpoint
    */
   @Operation(
-      summary = "Create order",
+      summary = "Criar pedido",
       description =
-          "Accepts a new order for asynchronous processing. The order starts in PENDING status;"
-              + " stock is reserved in the background via a message queue. Poll GET /{id} to"
-              + " observe the final CONFIRMED or FAILED status.",
+          "Aceita um novo pedido para processamento assíncrono. O pedido começa com status"
+              + " PENDING; o estoque é reservado em segundo plano via uma fila de mensagens. Faça"
+              + " polling em GET /{id} para observar o status final CONFIRMED ou FAILED.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
             responseCode = "202",
-            description = "Order accepted for processing (status: PENDING)",
+            description = "Pedido aceito para processamento (status: PENDING)",
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(
             responseCode = "401",
-            description = "Authentication required",
+            description = "Autenticação necessária",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
         @ApiResponse(
             responseCode = "404",
-            description = "A referenced product does not exist",
+            description = "Um produto referenciado não existe",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
         @ApiResponse(
             responseCode = "422",
-            description = "Invalid input data",
+            description = "Dados de entrada inválidos",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping
@@ -101,31 +103,32 @@ public class OrderController {
    * @return {@code 200 OK} with the order, or {@code 404} if not found
    */
   @Operation(
-      summary = "Find order by ID",
+      summary = "Buscar pedido por ID",
       description =
-          "Returns an order by its unique identifier, including its current status"
-              + " (PENDING, CONFIRMED, FAILED or CANCELLED). Requires authentication.",
+          "Retorna um pedido pelo seu identificador único, incluindo seu status atual"
+              + " (PENDING, CONFIRMED, FAILED ou CANCELLED). Requer autenticação.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "Order found",
+            description = "Pedido encontrado",
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(
             responseCode = "401",
-            description = "Authentication required",
+            description = "Autenticação necessária",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
         @ApiResponse(
             responseCode = "404",
-            description = "Order not found",
+            description = "Pedido não encontrado",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @GetMapping("/{id}")
   public ResponseEntity<OrderResponse> findById(
-      @Parameter(description = "Order identifier", example = "1", required = true) @PathVariable
+      @Parameter(description = "Identificador do pedido", example = "1", required = true)
+          @PathVariable
           Long id) {
     return ResponseEntity.ok(orderService.findById(id));
   }

@@ -38,7 +38,7 @@ public class KafkaOrderEventPublisher implements OrderEventPublisherPort {
   @Override
   public void publish(Long orderId, String eventType, Object payload) {
     log.info(
-        "Publishing to Kafka topic='{}', order_id={}, event_type='{}'.",
+        "Publicando no tópico Kafka='{}', order_id={}, event_type='{}'.",
         orderEventsTopic,
         orderId,
         eventType);

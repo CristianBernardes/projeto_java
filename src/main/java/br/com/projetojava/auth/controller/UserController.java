@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
  * authenticated principal — there is no way to read or change another user's profile through this
  * controller.
  */
-@Tag(name = "Users", description = "Authenticated user profile and avatar management")
+@Tag(name = "Usuários", description = "Gerenciamento de perfil e avatar do usuário autenticado")
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -39,22 +39,22 @@ public class UserController {
    * @return {@code 200 OK} with the user profile
    */
   @Operation(
-      summary = "Get my profile",
+      summary = "Obter meu perfil",
       description =
-          "Returns the authenticated user's profile, including the avatar file identifier and"
-              + " download URL when an avatar has been set. Requires authentication.",
+          "Retorna o perfil do usuário autenticado, incluindo o identificador do arquivo de avatar"
+              + " e a URL de download quando um avatar foi definido. Requer autenticação.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "Profile returned successfully",
+            description = "Perfil retornado com sucesso",
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = UserResponse.class))),
         @ApiResponse(
             responseCode = "401",
-            description = "Authentication required",
+            description = "Autenticação necessária",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @GetMapping("/me")
@@ -75,28 +75,28 @@ public class UserController {
    * @return {@code 200 OK} with the updated user profile
    */
   @Operation(
-      summary = "Upload my avatar",
+      summary = "Enviar meu avatar",
       description =
-          "Uploads an image (JPEG or PNG, max 10MB) and sets it as the authenticated user's"
-              + " avatar. Requires authentication. Avatar upload is optional and can be replaced"
-              + " at any time; previous uploads are kept as history, only the current pointer"
-              + " changes.",
+          "Envia uma imagem (JPEG ou PNG, máx. 10MB) e a define como avatar do usuário"
+              + " autenticado. Requer autenticação. O envio de avatar é opcional e pode ser"
+              + " substituído em qualquer momento; envios anteriores são mantidos como histórico,"
+              + " apenas o ponteiro atual muda.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
         @ApiResponse(
             responseCode = "200",
-            description = "Avatar uploaded and profile updated successfully",
+            description = "Avatar enviado e perfil atualizado com sucesso",
             content =
                 @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = UserResponse.class))),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid file (type not allowed or size exceeded)",
+            description = "Arquivo inválido (tipo não permitido ou tamanho excedido)",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
         @ApiResponse(
             responseCode = "401",
-            description = "Authentication required",
+            description = "Autenticação necessária",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
       })
   @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

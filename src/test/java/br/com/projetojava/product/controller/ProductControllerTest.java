@@ -93,7 +93,7 @@ class ProductControllerTest {
   @DisplayName("GET /api/v1/products/{id} — should return 404 when not found")
   void findById_shouldReturn404() throws Exception {
     when(productService.findById(99L))
-        .thenThrow(new ResourceNotFoundException("Product not found. id=99"));
+        .thenThrow(new ResourceNotFoundException("Produto não encontrado. id=99"));
 
     mockMvc
         .perform(get("/api/v1/products/99"))

@@ -28,16 +28,16 @@ public record DeliveryAddress(
    */
   public DeliveryAddress {
     if (street == null || street.isBlank()) {
-      throw new IllegalArgumentException("Delivery street must not be blank.");
+      throw new IllegalArgumentException("A rua de entrega não pode estar em branco.");
     }
     if (city == null || city.isBlank()) {
-      throw new IllegalArgumentException("Delivery city must not be blank.");
+      throw new IllegalArgumentException("A cidade de entrega não pode estar em branco.");
     }
     if (state == null || state.isBlank()) {
-      throw new IllegalArgumentException("Delivery state must not be blank.");
+      throw new IllegalArgumentException("O estado de entrega não pode estar em branco.");
     }
     if (zip == null || zip.isBlank()) {
-      throw new IllegalArgumentException("Delivery zip code must not be blank.");
+      throw new IllegalArgumentException("O CEP de entrega não pode estar em branco.");
     }
   }
 }

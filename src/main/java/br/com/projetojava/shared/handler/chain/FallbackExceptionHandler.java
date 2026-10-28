@@ -37,7 +37,7 @@ public class FallbackExceptionHandler extends AbstractExceptionHandler {
   @Override
   protected ErrorResponse process(Exception ex, HttpServletRequest request) {
     log.error(
-        "Unexpected error at {} {}: {}",
+        "Erro inesperado em {} {}: {}",
         request.getMethod(),
         request.getRequestURI(),
         ex.getMessage(),
@@ -45,7 +45,7 @@ public class FallbackExceptionHandler extends AbstractExceptionHandler {
 
     return ErrorResponse.of(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        "An internal error occurred. Please try again later.",
+        "Ocorreu um erro interno. Tente novamente mais tarde.",
         request.getRequestURI());
   }
 }

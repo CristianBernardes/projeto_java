@@ -71,7 +71,7 @@ public class Order {
   public static Order create(
       User user, DeliveryAddress deliveryAddress, List<OrderItemRequest> itemRequests) {
     if (itemRequests == null || itemRequests.isEmpty()) {
-      throw new IllegalArgumentException("Order must contain at least one item.");
+      throw new IllegalArgumentException("O pedido deve conter ao menos um item.");
     }
 
     Order order = new Order();

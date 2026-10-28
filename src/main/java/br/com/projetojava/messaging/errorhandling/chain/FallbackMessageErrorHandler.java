@@ -39,12 +39,12 @@ public class FallbackMessageErrorHandler extends AbstractMessageErrorHandler {
   @Override
   protected MessageErrorResolution process(Exception ex, MessageErrorContext context) {
     log.error(
-        "Unexpected error for message_id='{}' from source='{}'. Routing to dead letter for manual"
-            + " inspection.",
+        "Erro inesperado para message_id='{}' de source='{}'. Enviando para dead letter para"
+            + " inspeção manual.",
         context.messageId(),
         context.source(),
         ex);
     return MessageErrorResolution.rejectToDeadLetter(
-        "An unexpected error occurred while processing the message.");
+        "Ocorreu um erro inesperado ao processar a mensagem.");
   }
 }

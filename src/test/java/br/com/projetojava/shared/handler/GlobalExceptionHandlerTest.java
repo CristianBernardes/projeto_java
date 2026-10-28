@@ -48,10 +48,10 @@ class GlobalExceptionHandlerTest {
   @DisplayName("ResourceNotFoundException → 404")
   void shouldReturn404() {
     ResponseEntity<ErrorResponse> resp =
-        handler.handle(new ResourceNotFoundException("Product not found."), request);
+        handler.handle(new ResourceNotFoundException("Produto não encontrado."), request);
     assertThat(resp.getStatusCode().value()).isEqualTo(404);
     assertThat(resp.getBody()).isNotNull();
-    assertThat(resp.getBody().message()).isEqualTo("Product not found.");
+    assertThat(resp.getBody().message()).isEqualTo("Produto não encontrado.");
   }
 
   @Test
@@ -112,7 +112,7 @@ class GlobalExceptionHandlerTest {
         handler.handle(new RuntimeException("Unexpected error."), request);
     assertThat(resp.getStatusCode().value()).isEqualTo(500);
     assertThat(resp.getBody()).isNotNull();
-    assertThat(resp.getBody().message()).contains("internal error");
+    assertThat(resp.getBody().message()).contains("erro interno");
   }
 
   @Test

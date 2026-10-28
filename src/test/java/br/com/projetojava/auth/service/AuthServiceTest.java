@@ -91,7 +91,7 @@ class AuthServiceTest {
 
     assertThatThrownBy(() -> authService.login(request))
         .isInstanceOf(UnauthorizedException.class)
-        .hasMessageContaining("Invalid credentials");
+        .hasMessageContaining("Credenciais inválidas");
   }
 
   @Test
